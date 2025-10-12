@@ -1,1 +1,88 @@
-/.vs/
+#############################################
+# CampusLearn Platform - .gitignore
+# ASP.NET Core + EF Core + PostgreSQL + SignalR
+#############################################
+
+# ===== Build & Compiled Files =====
+bin/
+obj/
+out/
+publish/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+
+# ===== User & IDE Configurations =====
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+*.iml
+*.swp
+*.lock.json
+
+# ===== Application Settings =====
+# Keep sensitive data out of version control
+appsettings.Development.json
+appsettings.Local.json
+.env
+*.env
+secrets.json
+user-secrets.json
+
+# ===== Frontend Assets =====
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+
+# Optional: if using frontend build output
+wwwroot/lib/
+wwwroot/dist/
+wwwroot/build/
+
+# ===== Logs & Temp Files =====
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# ===== Entity Framework =====
+# Comment this out if you want to commit EF Migrations
+# Migrations/
+
+# ===== System Files =====
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ===== Python / Jupyter (Safety) =====
+__pycache__/
+*.pyc
+
+# ===== Coverage / Reports =====
+TestResults/
+*.coverage
+*.coveragexml
+*.trx
+
+# ===== Rider / JetBrains =====
+.idea/
+*.iml
+
+# ===== Misc =====
+*.local
+*.bak
+*.orig
+*.rej
+*.old
+*.log
