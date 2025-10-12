@@ -1,0 +1,144 @@
+﻿body {
+    background: linear-gradient(135deg, #e6edff, #f8faff);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.login-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 400px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+    .logo img {
+        width: 50px;
+        height: 50px;
+        margin-right: 10px;
+    }
+
+    .logo h3 {
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .logo p {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+.toggle-buttons {
+    display: flex;
+    background: #f0f0f0;
+    border-radius: 25px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+    .toggle-buttons button {
+        flex: 1;
+        border: none;
+        padding: 10px 0;
+        font-weight: 500;
+        background: transparent;
+        color: #555;
+        transition: all 0.3s ease;
+    }
+
+        .toggle-buttons button.active {
+            background: white;
+            color: #3b3ff8;
+            font-weight: 600;
+            box-shadow: 0 0 10px rgba(59, 63, 248, 0.1);
+        }
+.toggle-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+    .toggle-buttons button {
+        flex: 1;
+        border: none;
+        background: #e9ecef;
+        padding: 10px;
+        cursor: pointer;
+        font-weight: 500;
+        border-radius: 8px;
+        margin: 0 5px;
+        transition: background-color 0.3s;
+    }
+
+        .toggle-buttons button.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+.role-select {
+    border-radius: 10px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+}
+
+
+.form-control {
+    border-radius: 10px;
+    padding: 10px 15px;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.form-check-label {
+    font-size: 14px;
+}
+
+.forgot-password {
+    float: right;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+
+.btn-login {
+    width: 100%;
+    background-color: #3b3ff8;
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.support-text {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #777;
+}
+
+    .support-text a {
+        color: #3b3ff8;
+        text-decoration: none;
+    }
+
+        .support-text a:hover {
+            text-decoration: underline;
+        }
