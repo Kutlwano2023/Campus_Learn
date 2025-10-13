@@ -6,8 +6,13 @@ using CampusLearn.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ✅ Use PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("Default");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("❌ Database connection string 'Default' is missing in configuration.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(connectionString!));
 
 // Other service registrations
 builder.Services.AddScoped<IChatService, ChatService>();
