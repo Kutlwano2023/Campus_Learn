@@ -1,14 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
+
 namespace CampusLearn.Models
 {
-    public class Users: IdentityUser
+    public class Users : IdentityUser
     {
+        [Required]
+        [StringLength(100)]
+        public string FullName { get; set; }
 
-        
-        public string Fullname{ get; set; }
-
-        public string  Role { get; set; }=" Student";
-      
-
+        [Required]  
+        [StringLength(50)]
+        public string Role { get; set; }
     }
 }

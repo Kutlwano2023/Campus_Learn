@@ -1,0 +1,12 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<CampusLearn.Models.Users> UserManager
+
+@{
+    ViewData["Title"] = "Tutor Portal";
+    var user = UserManager.GetUserAsync(User).Result;
+}
+<h2>Tutor Portal</h2>
+<p>Welcome @user.FullName (@user.Email)</p>
+<form method="post" asp-controller="Account" asp-action="Logout">
+    <button type="submit">Logout</button>
+</form>
