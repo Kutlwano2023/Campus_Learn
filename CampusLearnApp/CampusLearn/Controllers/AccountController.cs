@@ -143,9 +143,6 @@ namespace CampusLearn.Controllers
             {
                 try
                 {
-                    Console.WriteLine($"=== REGISTER ATTEMPT ===");
-                    Console.WriteLine($"Name: {model.FullName}, Email: {model.Email}, Role: {model.Role}");
-
                     var user = new Users
                     {
                         UserName = model.Email,
@@ -155,63 +152,53 @@ namespace CampusLearn.Controllers
                     };
 
                     var result = await _userManager.CreateAsync(user, model.Password);
-                    Console.WriteLine($"User creation result: {result.Succeeded}");
 
                     if (result.Succeeded)
                     {
-                        Console.WriteLine("User created successfully");
-
-                        // Ensure role exists
-                        if (!await _roleManager.RoleExistsAsync(model.Role))
-                        {
-                            await _roleManager.CreateAsync(new IdentityRole(model.Role));
-                            Console.WriteLine($"Created role: {model.Role}");
-                        }
-
-                        await _userManager.AddToRoleAsync(user, model.Role);
-                        Console.WriteLine($"User added to role: {model.Role}");
-
                         // Save registration record
                         var registration = new Registration
                         {
                             FullName = model.FullName,
                             Email = model.Email,
-                            Password = "REGISTERED", // Don't store plain password
+                            Password = "REGISTERED",
                             Role = model.Role
                         };
 
                         _context.Registrations.Add(registration);
                         await _context.SaveChangesAsync();
-                        Console.WriteLine("Registration saved to database");
 
-                        // Sign in the user
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        return RedirectToAction("StudentPortal", "Home");
+
+                        // Pass success message to view
+                        TempData["RegistrationSuccess"] = true;
+
+                        // Redirect based on role
+                        if (model.Role?.ToLower() == "tutor")
+                        {
+                            return RedirectToAction("TutorPortal", "Home");
+                        }
+                        else
+                        {
+                            return RedirectToAction("StudentPortal", "Home");
+                        }
                     }
 
                     foreach (var error in result.Errors)
                     {
-                        Console.WriteLine($"Error: {error.Description}");
                         ModelState.AddModelError("", error.Description);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception: {ex.Message}");
+                    Console.WriteLine($"Error: {ex.Message}");
                     ModelState.AddModelError("", "An error occurred during registration.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Model validation failed");
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine($"Validation error: {error.ErrorMessage}");
                 }
             }
 
             return View(model);
         }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
