@@ -1,23 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CampusLearn.Models;
-public class Registration
+namespace CampusLearn.Models
 {
-    [Required]
-    public string FullName { get; set; }
-
-    [Required, EmailAddress]
-    public string Email { get; set; }
-
-    [Required]
-    public string Password { get; set; }
-
-    [Required]
-    [Compare("Password", ErrorMessage = "Passwords do not match.")]
-    public string ConfirmPassword { get; set; }
-
-    [Required]
-    public string Role { get; set; }
-
-    public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
+    public class Registration
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string Role { get; set; }
+    }
 }

@@ -1,8 +1,30 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to CampusLearn</h1>
+    <p>Your platform for connecting students and tutors.</p>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="mt-4">
+            <h3>Welcome back!</h3>
+            @{
+                var user = await UserManager.GetUserAsync(User);
+                var fullName = user?.FullName ?? User.Identity.Name;
+            }
+            <p>You are logged in as: <strong>@fullName</strong></p>
+        </div>
+    }
+    else
+    {
+        <div class="mt-4">
+            <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Login</a>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-secondary">Register</a>
+        </div>
+    }
 </div>
