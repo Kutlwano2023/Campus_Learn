@@ -1,31 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class Tutor
+    public class Tutor
     {
-        public int tutorID { get; set; }
-        public string firstName { get; set; }
-        public string lastName { get; set; }
-        public string specialization { get; set; }
+        [Key]
+        public int TutorID { get; set; }
 
-        public void assignModule()
-        {
-            //logic 
-        }
+        [StringLength(100)]
+        public string FirstName { get; set; }
 
-        public void reviewSubmission()
-        {
-            //logic
-        }
+        [StringLength(100)]
+        public string LastName { get; set; }
 
-        public void recieveReport()
-        {
-            //logic
-        }
+        [StringLength(200)]
+        public string Specialization { get; set; }
+
+        // Link to Identity User
+        public string UserId { get; set; }
+        public virtual Users User { get; set; }
     }
 }

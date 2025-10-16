@@ -6,12 +6,12 @@ using CampusLearn.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Configure EF Core with PostgreSQL
+// Configure EF Core with PostgreSQL
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(conn));
 
-// ✅ Configure Identity
+// Configure Identity
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -24,7 +24,13 @@ builder.Services.AddIdentity<Users, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Register RoleSeeder service
+// Register HttpClient FIRST
+builder.Services.AddHttpClient();
+
+// Register ChatService with HttpClient
+builder.Services.AddScoped<IChatService, ChatService>();
+
+// Register other services
 builder.Services.AddTransient<RoleSeeder>();
 
 // Add MVC
@@ -32,12 +38,27 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Seed roles and default users inside an async scope
+// Initialize database and seed data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var roleSeeder = services.GetRequiredService<RoleSeeder>();
-    await roleSeeder.SeedRolesAsync();
+
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate(); // Apply migrations
+
+        var roleSeeder = services.GetRequiredService<RoleSeeder>();
+        await roleSeeder.SeedRolesAsync();
+
+        // Seed sample data
+        await SeedSampleData(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
 }
 
 if (!app.Environment.IsDevelopment())
@@ -48,9 +69,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -59,3 +78,36 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// Sample data seeding method
+async Task SeedSampleData(AppDbContext context)
+{
+    // Only seed if no learning materials exist
+    if (!context.LearningMaterials.Any())
+    {
+        var materials = new List<LearningMaterial>
+        {
+            new LearningMaterial
+            {
+                Title = "Introduction to Programming",
+                MaterialType = "PDF",
+                FilePathURL = "/materials/programming-intro.pdf"
+            },
+            new LearningMaterial
+            {
+                Title = "Mathematics Fundamentals",
+                MaterialType = "PDF",
+                FilePathURL = "/materials/math-fundamentals.pdf"
+            },
+            new LearningMaterial
+            {
+                Title = "Web Development Guide",
+                MaterialType = "DOCX",
+                FilePathURL = "/materials/web-dev-guide.docx"
+            }
+        };
+
+        await context.LearningMaterials.AddRangeAsync(materials);
+        await context.SaveChangesAsync();
+    }
+}

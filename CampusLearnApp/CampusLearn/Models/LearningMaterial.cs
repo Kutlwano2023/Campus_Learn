@@ -1,26 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class LearningMaterial
+    public class LearningMaterial
     {
-        public int materialID { get; set; }
-        public string title { get; set; }
-        public string materialType { get; set; }
-        public string filePathURL { get; set; }
+        [Key]
+        public int MaterialID { get; set; }
 
-        public void download()
-        {
-            //logic 
-        }
+        [Required]
+        [StringLength(200)]
+        public string Title { get; set; }
 
-        public void preview()
-        {
-            //logic
-        }
+        [StringLength(50)]
+        public string MaterialType { get; set; }
+
+        [StringLength(500)]
+        public string FilePathURL { get; set; }
     }
 }
