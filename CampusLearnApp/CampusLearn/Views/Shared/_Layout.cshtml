@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - CampusLearn</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
 </head>
 <body>
     <header>
@@ -43,15 +44,36 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
     <script>
-        // Check for registration success message
-        window.onload = function() {
-            var registrationSuccess = '@(TempData["RegistrationSuccess"] ?? "")';
-            if (registrationSuccess === 'True') {
-                alert('Thank you for registering! Welcome to CampusLearn.');
-            }
-        };
+        @if (User.Identity.IsAuthenticated)
+        {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                var userName = User.Identity.Name;
+
+                <text>
+                window.chatbaseConfig = {
+                    chatbotId: "unSjVQr2Oflu8WwOb5kCR",
+                    userId: "@userId",
+                    userEmail: "@userEmail",
+                    userName: "@userName"
+                };
+                </text>
+        }
+        else
+        {
+                <text>
+                window.chatbaseConfig = {
+                    chatbotId: "unSjVQr2Oflu8WwOb5kCR"
+                };
+                </text>
+        }
+
+        (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="unSjVQr2Oflu8WwOb5kCR";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
     </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

@@ -27,9 +27,6 @@ builder.Services.AddIdentity<Users, IdentityRole>(options =>
 // Register HttpClient FIRST
 builder.Services.AddHttpClient();
 
-// Register ChatService with HttpClient
-builder.Services.AddScoped<IChatService, ChatService>();
-
 // Register other services
 builder.Services.AddTransient<RoleSeeder>();
 
