@@ -50,6 +50,7 @@ builder.Services.AddIdentity<Users, ApplicationRole>(options =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 // Add session support
 builder.Services.AddDistributedMemoryCache();

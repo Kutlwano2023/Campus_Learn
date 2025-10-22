@@ -1,0 +1,74 @@
+﻿@model CampusLearn.ViewModels.UploadResourceViewModel
+
+@{
+    ViewData["Title"] = "Upload Resource";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Upload Learning Resource</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Type" class="form-label"></label>
+                            <select asp-for="Type" asp-items="new SelectList(Model.AvailableTypes)" class="form-select">
+                                <option value="">Select Resource Type</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="File" class="form-label"></label>
+                            <input asp-for="File" class="form-control" type="file" />
+                            <span asp-validation-for="File" class="text-danger"></span>
+                            <div class="form-text">
+                                Allowed file types: PDF, DOCX, PPTX, MP4, JPG, PNG, TXT (Max: 50MB)
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ModuleId" class="form-label">Module (Optional)</label>
+                            <input asp-for="ModuleId" class="form-control" />
+                            <span asp-validation-for="ModuleId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TopicId" class="form-label">Topic (Optional)</label>
+                            <input asp-for="TopicId" class="form-control" />
+                            <span asp-validation-for="TopicId" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Resource
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

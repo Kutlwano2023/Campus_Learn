@@ -1,0 +1,108 @@
+﻿@model List<CampusLearn.Models.Resource>
+
+@{
+    ViewData["Title"] = "Learning Resources";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Learning Resources</h1>
+        @if (User.IsInRole("Tutor") || User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("Upload")" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload Resource
+            </a>
+        }
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Search" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="query" class="form-control" placeholder="Search resources..." value="@Context.Request.Query["query"]">
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        @foreach (var type in new List<string> { "Study Guide", "Lecture Notes", "Research Paper", "Video Lecture", "Presentation", "Assignment", "Tutorial" })
+                        {
+                            <option value="@type" selected="@(Context.Request.Query["type"] == type)">@type</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="fileType" class="form-select">
+                        <option value="">All File Types</option>
+                        @foreach (var fileType in new List<string> { "PDF", "DOCX", "PPTX", "MP4", "JPG", "PNG" })
+                        {
+                            <option value="@fileType" selected="@(Context.Request.Query["fileType"] == fileType)">@fileType</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resources Grid -->
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var resource in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">@resource.Title</h5>
+                                <span class="badge bg-secondary">@resource.FileType</span>
+                            </div>
+                            <p class="card-text text-muted small">@resource.Description</p>
+                            <div class="resource-meta">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> @resource.Author<br>
+                                    <i class="fas fa-tag"></i> @resource.Type<br>
+                                    <i class="fas fa-file"></i> @resource.FileSizeMB MB<br>
+                                    <i class="fas fa-download"></i> @resource.Downloads downloads<br>
+                                    <i class="fas fa-clock"></i> @resource.UploadedAgo
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="btn-group w-100">
+                                <a href="@Url.Action("Download", new { id = resource.Id })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                @if (User.IsInRole("Tutor") || User.IsInRole("Admin"))
+                                {
+                                    <form method="post" asp-action="Delete" asp-route-id="@resource.Id"
+                                          onsubmit="return confirm('Are you sure you want to delete this resource?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+            <h3>No resources found</h3>
+            <p class="text-muted">No learning resources available yet.</p>
+            @if (User.IsInRole("Tutor") || User.IsInRole("Admin"))
+            {
+                <a href="@Url.Action("Upload")" class="btn btn-primary">Upload First Resource</a>
+            }
+        </div>
+    }
+</div>
