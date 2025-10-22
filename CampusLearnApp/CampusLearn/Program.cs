@@ -1,5 +1,6 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Extensions;
 using AspNetCore.Identity.MongoDbCore.Models;
+using CampusLearn.Hubs;
 using CampusLearn.Models;
 using CampusLearn.Services;
 using Microsoft.AspNetCore.Identity;
@@ -20,7 +21,6 @@ builder.Services.Configure<MongoDBSettings>(
 // Get MongoDB configuration
 var connectionString = builder.Configuration.GetSection("MongoDBSettings:ConnectionString").Value;
 var databaseName = builder.Configuration.GetSection("MongoDBSettings:DatabaseName").Value;
-
 
 // Add Identity with MongoDB
 builder.Services.AddIdentity<Users, ApplicationRole>(options =>
@@ -49,7 +49,9 @@ builder.Services.AddIdentity<Users, ApplicationRole>(options =>
 .AddMongoDbStores<Users, ApplicationRole, Guid>(connectionString, databaseName)
 .AddDefaultTokenProviders();
 
+// Add MVC and SignalR services
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 // Add session support
 builder.Services.AddDistributedMemoryCache();
@@ -61,12 +63,17 @@ builder.Services.AddSession(options =>
 });
 
 // Register services
-builder.Services.AddSingleton<MongoService>();
+builder.Services.AddScoped<MongoService>();
 builder.Services.AddScoped<RoleSeeder>();
-builder.Services.AddScoped<UserService>(); // Add this line
+builder.Services.AddScoped<UserService>();
 
+// Add HttpContextAccessor for accessing current user in services
+builder.Services.AddHttpContextAccessor();
+
+// Build the application
 var app = builder.Build();
 
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -80,6 +87,9 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Map SignalR hub
+app.MapHub<MessagingHub>("/messagingHub");
+
 // Seed roles and test connection
 using (var scope = app.Services.CreateScope())
 {
@@ -92,6 +102,24 @@ using (var scope = app.Services.CreateScope())
     {
         var usersCount = await mongoService.Users.CountDocumentsAsync(Builders<Users>.Filter.Empty);
         Console.WriteLine($"MongoDB connection successful. Users in database: {usersCount}");
+
+        // Ensure messages collection exists and create indexes
+        var database = mongoService.Users.Database;
+        var messagesCollection = database.GetCollection<Message>("messages");
+
+        // Create indexes for better performance
+        var senderIndex = Builders<Message>.IndexKeys.Ascending(m => m.SenderId);
+        var receiverIndex = Builders<Message>.IndexKeys.Ascending(m => m.ReceiverId);
+        var sentAtIndex = Builders<Message>.IndexKeys.Descending(m => m.SentAt);
+        var isReadIndex = Builders<Message>.IndexKeys.Ascending(m => m.IsRead);
+
+        var indexKeys = Builders<Message>.IndexKeys
+            .Combine(senderIndex, receiverIndex, sentAtIndex);
+
+        await messagesCollection.Indexes.CreateOneAsync(new CreateIndexModel<Message>(indexKeys));
+        await messagesCollection.Indexes.CreateOneAsync(new CreateIndexModel<Message>(isReadIndex));
+
+        Console.WriteLine("Message collection indexes created successfully");
     }
     catch (Exception ex)
     {
