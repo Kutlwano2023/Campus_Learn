@@ -67,7 +67,7 @@ namespace CampusLearn.Controllers
         }
 
         [HttpGet("conversations/{conversationId}")]
-        public async Task<ActionResult<ChatConversation>> GetConversation(Guid conversationId)
+        public async Task<ActionResult<ChatConversation>> GetConversation(string conversationId)
         {
             try
             {
@@ -94,7 +94,7 @@ namespace CampusLearn.Controllers
         }
 
         [HttpDelete("conversations/{conversationId}")]
-        public async Task<IActionResult> DeleteConversation(Guid conversationId)
+        public async Task<IActionResult> DeleteConversation(string conversationId)
         {
             try
             {

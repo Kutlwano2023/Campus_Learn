@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Forum";
+    Layout = "_Layout";
+}
+
+<partial name="_PortalNavigation" />
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Discussion Forum</h1>
+
+            @if (ViewBag.Role == "Tutor")
+            {
+                <div class="alert alert-info">
+                    <h4>Tutor Forum Management</h4>
+                    <p>Monitor discussions, answer questions, and moderate forum content.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Unanswered Questions</h5>
+                                <p class="card-text">Review and respond to student questions.</p>
+                                <a href="#" class="btn btn-primary">View Questions</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Forum Analytics</h5>
+                                <p class="card-text">View discussion activity and engagement metrics.</p>
+                                <a href="#" class="btn btn-info">View Analytics</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <p>Participate in discussions and ask questions here.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Recent Discussions</h3>
+                        <button class="btn btn-primary">New Topic</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Help with Calculus Problem</h5>
+                                    <small>3 hours ago</small>
+                                </div>
+                                <p class="mb-1">Struggling with this integration problem from chapter 5...</p>
+                                <small>Mathematics • 5 replies</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Study Group for Physics Exam</h5>
+                                    <small>1 day ago</small>
+                                </div>
+                                <p class="mb-1">Anyone interested in forming a study group for the upcoming physics exam?</p>
+                                <small>Physics • 12 replies</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="mt-3">
+                <a asp-controller="Portal" asp-action="Dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>

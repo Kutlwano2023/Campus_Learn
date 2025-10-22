@@ -1,25 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class Review
+    public class Review
     {
-        public int ReviewId { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string ReviewId { get; set; }
+
         public string CommentText { get; set; }
         public int Rating { get; set; }
-        public DateTime DateCommented { get; set; }
-       
+        public DateTime DateCommented { get; set; } = DateTime.UtcNow;
+        public string UserId { get; set; }
+        public string CourseId { get; set; }
+
         public void AddReview()
         {
-           //logic
+            //logic
         }
+
         public void UpdateReview()
         {
             //logic
         }
-        }
     }
+}

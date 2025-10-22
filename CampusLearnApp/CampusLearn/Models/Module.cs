@@ -1,32 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class Module
+    public class Module
     {
-        public string moduleID { get; set; }
-        public string description { get; set; }
-        public int credits { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string ModuleId { get; set; }
 
-        public void addTopic()
+        [Required]
+        public string ModuleName { get; set; }
+
+        [Required]
+        public string Description { get; set; }
+
+        public int Credits { get; set; }
+        public string CourseId { get; set; }
+        public string TutorId { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsActive { get; set; } = true;
+
+        // Navigation properties (for reference)
+        public List<string> TopicIds { get; set; } = new List<string>();
+        public List<string> AssessmentIds { get; set; } = new List<string>();
+
+        public void AddTopic(string topicId)
         {
-            //logic 
+            if (!TopicIds.Contains(topicId))
+            {
+                TopicIds.Add(topicId);
+                UpdatedAt = DateTime.UtcNow;
+            }
         }
 
-        public void addAssesment()
+        public void AddAssessment(string assessmentId)
         {
-            //logic
+            if (!AssessmentIds.Contains(assessmentId))
+            {
+                AssessmentIds.Add(assessmentId);
+                UpdatedAt = DateTime.UtcNow;
+            }
         }
 
-        public void getLearningMaterials()
+        public void GetLearningMaterials()
         {
-            //logic
+            // Logic to retrieve learning materials
         }
-
-
     }
 }

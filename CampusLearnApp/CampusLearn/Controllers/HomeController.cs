@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusLearn.Controllers
 {
@@ -10,15 +10,19 @@ namespace CampusLearn.Controllers
             return View();
         }
 
-        [Authorize]
+        [Authorize(Roles = "STUDENT")]
         public IActionResult StudentPortal()
         {
+            ViewBag.UserName = User.Identity.Name;
+            ViewBag.Role = "Student";
             return View();
         }
 
-        [Authorize]
+        [Authorize(Roles = "TUTOR")]
         public IActionResult TutorPortal()
         {
+            ViewBag.UserName = User.Identity.Name;
+            ViewBag.Role = "Tutor";
             return View();
         }
     }

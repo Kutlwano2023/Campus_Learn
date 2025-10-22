@@ -1,26 +1,88 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class Report
+    public class Report
     {
-        // Attributes (state)
-        public int reporterID { get; set; }
-        public string description { get; set; }
-        public DateTime dateReported { get; set; }
-        public string status { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string ReportId { get; set; }
 
-        public void submitReport()
+        [Required]
+        public string ReporterId { get; set; }
+
+        [Required]
+        [StringLength(500)]
+        public string Description { get; set; }
+
+        [Required]
+        public DateTime DateReported { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        [StringLength(50)]
+        public string Status { get; set; } = "Pending";
+
+        [StringLength(100)]
+        public string Title { get; set; }
+
+        [StringLength(50)]
+        public string Category { get; set; } // Technical, Academic, Behavioral, Other
+
+        public string ReportedUserId { get; set; } // User being reported (if applicable)
+        public string CourseId { get; set; } // Related course (if applicable)
+        public string ModuleId { get; set; } // Related module (if applicable)
+
+        // Resolution fields
+        public string ResolvedById { get; set; }
+        public DateTime? DateResolved { get; set; }
+        public string ResolutionNotes { get; set; }
+
+        public string Priority { get; set; } = "Medium"; // Low, Medium, High, Critical
+
+        public void SubmitReport(string reporterId, string title, string description, string category = "Other")
         {
-            //logic
+            ReporterId = reporterId;
+            Title = title;
+            Description = description;
+            Category = category;
+            DateReported = DateTime.UtcNow;
+            Status = "Pending";
         }
-        public void resolveReport()
+
+        public void ResolveReport(string resolvedById, string resolutionNotes = null)
         {
-            //logic
+            Status = "Resolved";
+            ResolvedById = resolvedById;
+            DateResolved = DateTime.UtcNow;
+            ResolutionNotes = resolutionNotes;
         }
+
+        public void UpdateStatus(string status, string updatedById = null)
+        {
+            Status = status;
+            if (status == "Resolved" && !string.IsNullOrEmpty(updatedById))
+            {
+                ResolvedById = updatedById;
+                DateResolved = DateTime.UtcNow;
+            }
+        }
+    }
+
+    public enum ReportStatus
+    {
+        Pending,
+        UnderReview,
+        Resolved,
+        Rejected
+    }
+
+    public enum ReportPriority
+    {
+        Low,
+        Medium,
+        High,
+        Critical
     }
 }

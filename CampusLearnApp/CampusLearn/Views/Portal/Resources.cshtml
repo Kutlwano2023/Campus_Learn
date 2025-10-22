@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "Resources";
+    Layout = "_Layout";
+}
+
+<partial name="_PortalNavigation" />
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Learning Resources</h1>
+
+            @if (ViewBag.Role == "Tutor")
+            {
+                <div class="alert alert-info">
+                    <h4>Tutor Resource Management</h4>
+                    <p>Upload and manage learning materials for your students.</p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                                <h5>Upload Resources</h5>
+                                <a href="#" class="btn btn-primary">Upload Files</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-folder fa-3x text-success mb-3"></i>
+                                <h5>Manage Resources</h5>
+                                <a href="#" class="btn btn-success">Organize</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                                <h5>Usage Analytics</h5>
+                                <a href="#" class="btn btn-info">View Stats</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <p>Access all your learning materials, study guides, and educational resources.</p>
+                </div>
+            }
+
+            <!-- Resources Grid -->
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Study Materials</h5>
+                            <p class="card-text">Textbooks, notes, and reference materials for all courses.</p>
+                            <a href="#" class="btn btn-primary">Browse Materials</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-video fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Video Lectures</h5>
+                            <p class="card-text">Recorded lectures and tutorial videos.</p>
+                            <a href="#" class="btn btn-success">Watch Videos</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">PDF Documents</h5>
+                            <p class="card-text">Downloadable PDFs and study guides.</p>
+                            <a href="#" class="btn btn-danger">View PDFs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Resources -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>Recently Added Resources</h3>
+                    @if (ViewBag.Role == "Tutor")
+                    {
+                        <button class="btn btn-primary">Add New Resource</button>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Calculus Study Guide</h5>
+                                <small class="text-muted">3 days ago</small>
+                            </div>
+                            <p class="mb-1">Complete guide covering limits, derivatives, and integrals with practice problems.</p>
+                            <small class="text-muted">Mathematics • PDF • 2.4 MB</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Physics Lecture: Quantum Mechanics</h5>
+                                <small class="text-muted">1 week ago</small>
+                            </div>
+                            <p class="mb-1">Video lecture covering quantum theory fundamentals.</p>
+                            <small class="text-muted">Physics • Video • 1.2 GB</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

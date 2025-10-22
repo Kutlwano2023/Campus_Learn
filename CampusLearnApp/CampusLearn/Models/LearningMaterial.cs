@@ -1,21 +1,31 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusLearn.Models
 {
     public class LearningMaterial
     {
-        [Key]
-        public int MaterialID { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string MaterialId { get; set; }
 
         [Required]
         [StringLength(200)]
         public string Title { get; set; }
 
         [StringLength(50)]
-        public string MaterialType { get; set; }
+        public string MaterialType { get; set; } // PDF, Video, Document, Presentation
 
         [StringLength(500)]
-        public string FilePathURL { get; set; }
+        public string FilePathUrl { get; set; }
+
+        public string ModuleId { get; set; }
+        public string TopicId { get; set; }
+        public string UploadedById { get; set; }
+        public DateTime UploadDate { get; set; } = DateTime.UtcNow;
+        public long FileSize { get; set; }
+        public int DownloadCount { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

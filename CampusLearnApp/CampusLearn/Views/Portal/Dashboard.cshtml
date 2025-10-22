@@ -1,0 +1,186 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Dashboard Overview";
+    Layout = "_Layout";
+
+    // Get the current user and their full name
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "User";
+    var role = ViewBag.Role ?? "Student";
+}
+
+<partial name="_PortalNavigation" />
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="container">
+    <header>
+        <h2>Dashboard Overview</h2>
+        <p>Welcome back, @fullName! Here's your learning progress.</p>
+        <div class="alert alert-success">
+            <strong>Hello, @fullName!</strong> You are logged in as a <strong>@role</strong>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Upcoming Sessions -->
+            <section class="upcoming-sessions card">
+                <div class="card-header">
+                    <h3>📅 Upcoming Sessions</h3>
+                    <a asp-controller="Portal" asp-action="ScheduleSession" class="view-btn">View Calendar</a>
+                </div>
+                <div class="session">
+                    <div class="session-info">
+                        <div class="avatar">AJ</div>
+                        <div>
+                            <h4>Alice Johnson</h4>
+                            <p>JavaScript • 1 Hour<br>Video Call</p>
+                        </div>
+                    </div>
+                    <div class="session-action">
+                        <p>Today, 2:00 PM</p>
+                        <button class="join-btn">Join Session</button>
+                    </div>
+                </div>
+
+                <div class="session">
+                    <div class="session-info">
+                        <div class="avatar">BS</div>
+                        <div>
+                            <h4>Bob Smith</h4>
+                            <p>React • 1.5 hours<br>In Person</p>
+                        </div>
+                    </div>
+                    <div class="session-action">
+                        <p>Tomorrow, 10:00 AM</p>
+                        <button class="join-btn">Join Session</button>
+                    </div>
+                </div>
+
+                <div class="session">
+                    <div class="session-info">
+                        <div class="avatar">CD</div>
+                        <div>
+                            <h4>Carol Davis</h4>
+                            <p>Python • 1 Hour<br>Video Call</p>
+                        </div>
+                    </div>
+                    <div class="session-action">
+                        <p>Wed, 3:00 PM</p>
+                        <button class="join-btn">Join Session</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Calendar Sessions -->
+            <section class="calendar-sessions card">
+                <div class="card-header">
+                    <h3>Today's Schedule</h3>
+                </div>
+                <div class="calendar-times">
+                    <div class="time-slot">2:00 PM<br><span>Session</span></div>
+                    <div class="time-slot">3:30 PM<br><span>Session</span></div>
+                    <div class="time-slot">1:00 PM<br><span>Study Group</span></div>
+                    <div class="time-slot">4:30 PM<br><span>Office Hours</span></div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions card">
+                <h3>⚡ Quick Actions</h3>
+                <ul>
+                    <li>
+                        <a asp-controller="Portal" asp-action="ScheduleSession">
+                            📆 Schedule Session — <span>Book a new tutoring session</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Portal" asp-action="Resources">
+                            📚 Learning Resources — <span>Access study materials</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="openMessagesQuickAction">
+                            💬 Messages — <span>Check new messages</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Portal" asp-action="Assignments">
+                            📄 Assignments — <span>View pending work</span>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Stats and Progress -->
+            <div class="stats-progress-grid">
+                <!-- Active Courses -->
+                <div class="active-courses card">
+                    <h3>Active Courses</h3>
+                    <div class="course-count">@(role == "Tutor" ? "8" : "5")</div>
+                    <small>@(role == "Tutor" ? "Teaching" : "Enrolled") courses</small>
+                </div>
+
+                <!-- Current Progress -->
+                <div class="current-progress card">
+                    <h3>Current Progress</h3>
+                    <p>Your active learning paths</p>
+                    <div class="progress-item">
+                        <strong>@(role == "Tutor" ? "Student Performance" : "React Fundamentals")</strong>
+                        <div class="progress-bar">
+                            <div class="bar"><span style="width:75%"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <section class="recent-activity card">
+                <h3>Recent Activity</h3>
+                <p>Latest interactions and updates</p>
+                <div class="activity-content">
+                    <div class="activity-message">
+                        <strong>@(role == "Tutor" ? "New assignment submitted" : "Sarah shared notes on 'React Hooks'")</strong>
+                        <span>2 hours ago</span>
+                    </div>
+                    <div class="activity-message">
+                        <strong>@(role == "Tutor" ? "Student question in forum" : "Quiz results available")</strong>
+                        <span>5 hours ago</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Join session button functionality
+            const joinButtons = document.querySelectorAll('.join-btn');
+            joinButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    alert('Joining session... This would connect to the video call in a real application.');
+                });
+            });
+
+            // Quick action for messages
+            const openMessagesQuickAction = document.getElementById('openMessagesQuickAction');
+            if (openMessagesQuickAction) {
+                openMessagesQuickAction.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const messageWidgetBtn = document.getElementById('messageWidgetBtn');
+                    if (messageWidgetBtn) {
+                        messageWidgetBtn.click();
+                    }
+                });
+            }
+        });
+    </script>
+}

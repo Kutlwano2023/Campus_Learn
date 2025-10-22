@@ -1,0 +1,96 @@
+﻿@{
+}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <!-- Brand/Logo -->
+        <a class="navbar-brand" asp-controller="Portal" asp-action="Dashboard">
+            <strong>Campus Learn</strong>
+            <small class="d-block" style="font-size: 0.7rem; opacity: 0.8;">v2.0</small>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portalNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="portalNavbar">
+            <!-- Main Navigation Items -->
+            <ul class="navbar-nav me-auto">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="Dashboard">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+
+                <!-- Student Portal -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="StudentPortal">
+                        <i class="fas fa-user-graduate me-1"></i>Student Portal
+                    </a>
+                </li>
+
+                <!-- Schedule Session -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="ScheduleSession">
+                        <i class="fas fa-calendar-alt me-1"></i>Schedule Session
+                    </a>
+                </li>
+
+                <!-- Resources -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="Resources">
+                        <i class="fas fa-folder-open me-1"></i>Resources
+                    </a>
+                </li>
+
+                <!-- Quiz Portal -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="QuizPortal">
+                        <i class="fas fa-puzzle-piece me-1"></i>Quiz Portal
+                    </a>
+                </li>
+
+                <!-- Tests -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="Tests">
+                        <i class="fas fa-file-signature me-1"></i>Tests
+                    </a>
+                </li>
+
+                <!-- Assignments -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="Assignments">
+                        <i class="fas fa-tasks me-1"></i>Assignments
+                    </a>
+                </li>
+
+                <!-- Forum -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Portal" asp-action="Forum">
+                        <i class="fas fa-comments me-1"></i>Forum
+                    </a>
+                </li>
+            </ul>
+
+            <!-- User Menu -->
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>@ViewBag.UserName
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" asp-controller="Portal" asp-action="Profile"><i class="fas fa-user me-1"></i>Profile</a></li>
+                        <li><a class="dropdown-item" asp-controller="Portal" asp-action="Settings"><i class="fas fa-cog me-1"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-1"></i>Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

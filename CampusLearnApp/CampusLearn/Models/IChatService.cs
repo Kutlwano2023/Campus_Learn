@@ -1,4 +1,6 @@
 ﻿using CampusLearn.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CampusLearn.Services
 {
@@ -6,7 +8,7 @@ namespace CampusLearn.Services
     {
         Task<ChatResponse> ProcessMessageAsync(ChatRequest request, string userId);
         Task<List<ChatConversation>> GetUserConversationsAsync(string userId);
-        Task<ChatConversation> GetConversationWithMessagesAsync(Guid conversationId);
-        Task DeleteConversationAsync(Guid conversationId, string userId);
+        Task<ChatConversation> GetConversationWithMessagesAsync(string conversationId);
+        Task DeleteConversationAsync(string conversationId, string userId);
     }
 }

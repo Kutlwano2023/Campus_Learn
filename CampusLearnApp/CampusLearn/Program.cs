@@ -1,62 +1,71 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using CampusLearn.Data;
-using CampusLearn.Services;
+﻿using AspNetCore.Identity.MongoDbCore.Extensions;
+using AspNetCore.Identity.MongoDbCore.Models;
 using CampusLearn.Models;
+using CampusLearn.Services;
+using Microsoft.AspNetCore.Identity;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure EF Core with PostgreSQL
-var conn = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(conn));
+// Add logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
-// Configure Identity
-builder.Services.AddIdentity<Users, IdentityRole>(options =>
+// Configure MongoDB settings
+builder.Services.Configure<MongoDBSettings>(
+    builder.Configuration.GetSection("MongoDBSettings")
+);
+
+// Get MongoDB configuration
+var connectionString = builder.Configuration.GetSection("MongoDBSettings:ConnectionString").Value;
+var databaseName = builder.Configuration.GetSection("MongoDBSettings:DatabaseName").Value;
+
+
+// Add Identity with MongoDB
+builder.Services.AddIdentity<Users, ApplicationRole>(options =>
 {
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = false;
+    // Password settings
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User settings
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
     options.User.RequireUniqueEmail = true;
+
+    // Sign-in settings
+    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedAccount = false;
 })
-.AddEntityFrameworkStores<AppDbContext>()
+.AddMongoDbStores<Users, ApplicationRole, Guid>(connectionString, databaseName)
 .AddDefaultTokenProviders();
 
-// Register HttpClient FIRST
-builder.Services.AddHttpClient();
-
-// Register other services
-builder.Services.AddTransient<RoleSeeder>();
-
-// Add MVC
 builder.Services.AddControllersWithViews();
 
-var app = builder.Build();
-
-// Initialize database and seed data
-using (var scope = app.Services.CreateScope())
+// Add session support
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
 {
-    var services = scope.ServiceProvider;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        context.Database.Migrate(); // Apply migrations
+// Register services
+builder.Services.AddSingleton<MongoService>();
+builder.Services.AddScoped<RoleSeeder>();
+builder.Services.AddScoped<UserService>(); // Add this line
 
-        var roleSeeder = services.GetRequiredService<RoleSeeder>();
-        await roleSeeder.SeedRolesAsync();
-
-        // Seed sample data
-        await SeedSampleData(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-    }
-}
+var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -67,44 +76,32 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.Run();
-
-// Sample data seeding method
-async Task SeedSampleData(AppDbContext context)
+// Seed roles and test connection
+using (var scope = app.Services.CreateScope())
 {
-    // Only seed if no learning materials exist
-    if (!context.LearningMaterials.Any())
-    {
-        var materials = new List<LearningMaterial>
-        {
-            new LearningMaterial
-            {
-                Title = "Introduction to Programming",
-                MaterialType = "PDF",
-                FilePathURL = "/materials/programming-intro.pdf"
-            },
-            new LearningMaterial
-            {
-                Title = "Mathematics Fundamentals",
-                MaterialType = "PDF",
-                FilePathURL = "/materials/math-fundamentals.pdf"
-            },
-            new LearningMaterial
-            {
-                Title = "Web Development Guide",
-                MaterialType = "DOCX",
-                FilePathURL = "/materials/web-dev-guide.docx"
-            }
-        };
+    var roleSeeder = scope.ServiceProvider.GetRequiredService<RoleSeeder>();
+    await roleSeeder.SeedRolesAsync();
 
-        await context.LearningMaterials.AddRangeAsync(materials);
-        await context.SaveChangesAsync();
+    // Test MongoDB connection
+    var mongoService = scope.ServiceProvider.GetRequiredService<MongoService>();
+    try
+    {
+        var usersCount = await mongoService.Users.CountDocumentsAsync(Builders<Users>.Filter.Empty);
+        Console.WriteLine($"MongoDB connection successful. Users in database: {usersCount}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"MongoDB connection failed: {ex.Message}");
     }
 }
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
+
+app.Run();

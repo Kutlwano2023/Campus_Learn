@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "Tests";
+    Layout = "_Layout";
+}
+
+<partial name="_PortalNavigation" />
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Tests</h1>
+
+            @if (ViewBag.Role == "Tutor")
+            {
+                <div class="alert alert-info">
+                    <h4>Tutor Test Management</h4>
+                    <p>Create and manage tests, view results, and analyze student performance.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-edit fa-3x text-primary mb-3"></i>
+                                <h5>Create Test</h5>
+                                <a href="#" class="btn btn-primary">New Test</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-double fa-3x text-success mb-3"></i>
+                                <h5>Grade Tests</h5>
+                                <a href="#" class="btn btn-success">Grade Submissions</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                                <h5>Test Analytics</h5>
+                                <a href="#" class="btn btn-info">View Analytics</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <p>View your test schedule, take tests, and review your results.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>My Tests</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Test Name</th>
+                                        <th>Subject</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Midterm Exam</td>
+                                        <td>Mathematics</td>
+                                        <td>Dec 10, 2024</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td><strong>88%</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Final Project</td>
+                                        <td>Computer Science</td>
+                                        <td>Dec 20, 2024</td>
+                                        <td><span class="badge bg-warning">Upcoming</span></td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Lab Practical</td>
+                                        <td>Physics</td>
+                                        <td>Dec 15, 2024</td>
+                                        <td><span class="badge bg-info">In Progress</span></td>
+                                        <td>-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="mt-3">
+                <a asp-controller="Portal" asp-action="Dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,10 +6,12 @@ namespace CampusLearn.ViewModels
     {
         [Required]
         [Display(Name = "Full Name")]
+        [StringLength(100, ErrorMessage = "Full Name must be between {2} and {1} characters.", MinimumLength = 2)]
         public string FullName { get; set; }
 
         [Required]
         [EmailAddress]
+        [Display(Name = "Email Address")]
         public string Email { get; set; }
 
         [Required]
@@ -18,7 +20,14 @@ namespace CampusLearn.ViewModels
         public string Password { get; set; }
 
         [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
+
+        [Required]
         [Display(Name = "Role")]
         public string Role { get; set; }
+
     }
 }

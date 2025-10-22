@@ -1,0 +1,98 @@
+﻿@{
+    ViewData["Title"] = "Student Portal";
+    Layout = "_Layout";
+}
+
+<partial name="_PortalNavigation" />
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Student Portal</h1>
+            <div class="alert alert-success">
+                <h4>Welcome to Student Portal!</h4>
+                <p>Access all your student resources and tools in one place.</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Quick Access</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a asp-controller="Portal" asp-action="Resources" class="btn btn-outline-primary mb-2">
+                                    <i class="fas fa-book me-1"></i>Learning Resources
+                                </a>
+                                <a asp-controller="Portal" asp-action="QuizPortal" class="btn btn-outline-success mb-2">
+                                    <i class="fas fa-puzzle-piece me-1"></i>Take Quiz
+                                </a>
+                                <a asp-controller="Portal" asp-action="Assignments" class="btn btn-outline-warning mb-2">
+                                    <i class="fas fa-tasks me-1"></i>View Assignments
+                                </a>
+                                <a asp-controller="Portal" asp-action="ScheduleSession" class="btn btn-outline-info mb-2">
+                                    <i class="fas fa-calendar-alt me-1"></i>Schedule Session
+                                </a>
+                                <a asp-controller="Portal" asp-action="Forum" class="btn btn-outline-secondary">
+                                    <i class="fas fa-comments me-1"></i>Discussion Forum
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>My Courses</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    Mathematics 101
+                                    <span class="badge bg-primary rounded-pill">85%</span>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    Physics Fundamentals
+                                    <span class="badge bg-success rounded-pill">92%</span>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    Chemistry Basics
+                                    <span class="badge bg-warning rounded-pill">78%</span>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    Computer Science Intro
+                                    <span class="badge bg-info rounded-pill">88%</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Deadlines -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6>Upcoming Deadlines</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item px-0">
+                                    <small>Calculus Assignment</small>
+                                    <div class="text-muted">Due: Dec 15</div>
+                                </div>
+                                <div class="list-group-item px-0">
+                                    <small>Physics Lab Report</small>
+                                    <div class="text-muted">Due: Dec 12</div>
+                                </div>
+                                <div class="list-group-item px-0">
+                                    <small>Chemistry Quiz</small>
+                                    <div class="text-muted">Due: Dec 18</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

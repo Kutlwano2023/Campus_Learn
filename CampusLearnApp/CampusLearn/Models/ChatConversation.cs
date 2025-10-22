@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace CampusLearn.Models
 {
     public class ChatConversation
     {
-        [Key]
-        public Guid ConversationId { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string ConversationId { get; set; }
 
         [Required]
         public string UserId { get; set; }
@@ -15,77 +18,82 @@ namespace CampusLearn.Models
         [StringLength(500)]
         public string Title { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [StringLength(50)]
         public string ConversationType { get; set; } = "General";
 
-        // Navigation properties
-        [ForeignKey("UserId")]
-        public virtual Users User { get; set; }
+        // Chatbase-specific fields
+        public string ChatbaseChatId { get; set; }
 
-        public virtual ICollection<ChatMessage> Messages { get; set; }
+        [StringLength(20)]
+        public string Status { get; set; } = "Active";
     }
 
-    // ChatMessage.cs
-    public class ChatMessage
-    {
-        [Key]
-        public Guid MessageId { get; set; }
-
-        [Required]
-        public Guid ConversationId { get; set; }
-
-        public string UserId { get; set; }
-
-        [Required]
-        public string MessageText { get; set; }
-
-        [Required]
-        public bool IsUserMessage { get; set; }
-
-        [StringLength(50)]
-        public string MessageType { get; set; } = "Text";
-
-        public DateTime CreatedAt { get; set; }
-
-        // JSON storage for additional data
-        public string Metadata { get; set; }
-
-        // Navigation properties
-        [ForeignKey("ConversationId")]
-        public virtual ChatConversation Conversation { get; set; }
-
-        [ForeignKey("UserId")]
-        public virtual Users User { get; set; }
-    }
-
-    // ChatRequest.cs (DTO for API requests)
-    public class ChatRequest
-    {
-        public string Message { get; set; }
-        public Guid? ConversationId { get; set; }
-        public string ConversationType { get; set; } = "General";
-        public string UserRole { get; set; }
-    }
-
-    // ChatResponse.cs (DTO for API responses)
     public class ChatResponse
     {
-        public Guid MessageId { get; set; }
+        public string MessageId { get; set; }
         public string Response { get; set; }
-        public Guid ConversationId { get; set; }
+        public string ConversationId { get; set; }
         public string ConversationTitle { get; set; }
         public DateTime Timestamp { get; set; }
         public List<QuickAction> SuggestedActions { get; set; }
     }
 
-    // QuickAction.cs
     public class QuickAction
     {
         public string Text { get; set; }
         public string Action { get; set; }
         public string Type { get; set; } // "button", "link", "query"
+    }
+
+    public class ChatRequest
+    {
+        public string Message { get; set; }
+        public string ConversationId { get; set; }
+        public string ConversationType { get; set; } = "General";
+        public string UserRole { get; set; }
+    }
+
+    // Chatbase API Models
+    public class ChatbaseApiRequest
+    {
+        public List<ChatbaseMessage> messages { get; set; }
+        public string chatId { get; set; }
+        public bool stream { get; set; } = false;
+        public string userId { get; set; }
+        public object userData { get; set; }
+    }
+
+    public class ChatbaseMessage
+    {
+        public string role { get; set; }
+        public string content { get; set; }
+    }
+
+    public class ChatbaseApiResponse
+    {
+        public string text { get; set; }
+        public List<object> sources { get; set; }
+        public string chatId { get; set; }
+        public string messageId { get; set; }
+        public string sessionId { get; set; }
+    }
+
+    public class ChatbaseWebhookPayload
+    {
+        public string ChatId { get; set; }
+        public string UserId { get; set; }
+        public ChatbaseWebhookMessage Message { get; set; }
+        public ChatbaseWebhookMessage Response { get; set; }
+        public long Timestamp { get; set; }
+    }
+
+    public class ChatbaseWebhookMessage
+    {
+        public string Id { get; set; }
+        public string Content { get; set; }
+        public string Role { get; set; }
     }
 }

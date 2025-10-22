@@ -1,32 +1,29 @@
-﻿using CampusLearn.Data;
-using CampusLearn.Models;
+﻿using CampusLearn.Models;
+using CampusLearn.Services;
 using CampusLearn.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace CampusLearn.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly AppDbContext _context;
         private readonly UserManager<Users> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly SignInManager<Users> _signInManager;
+        private readonly MongoService _mongoService;
 
-        // Constructor includes SignInManager now
         public AccountController(
-            AppDbContext context,
             UserManager<Users> userManager,
-            RoleManager<IdentityRole> roleManager,
-            SignInManager<Users> signInManager)
+            RoleManager<ApplicationRole> roleManager,
+            SignInManager<Users> signInManager,
+            MongoService mongoService)
         {
-            _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
+            _mongoService = mongoService;
         }
 
         [HttpGet]
@@ -41,7 +38,6 @@ namespace CampusLearn.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            // Remove ReturnUrl from validation
             ModelState.Remove("ReturnUrl");
 
             if (!ModelState.IsValid)
@@ -51,22 +47,13 @@ namespace CampusLearn.Controllers
 
             try
             {
-                Console.WriteLine("Checking if user exists...");
                 var user = await _userManager.FindByEmailAsync(model.Email);
 
                 if (user == null)
                 {
-                    Console.WriteLine("User not found in database");
                     ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
                 }
-
-                Console.WriteLine($"User found: {user.UserName}");
-                Console.WriteLine($"User ID: {user.Id}");
-                Console.WriteLine($"User FullName: {user.FullName}");
-                Console.WriteLine($"User Role: {user.Role}");
-
-                Console.WriteLine("Attempting to sign in user...");
 
                 var result = await _signInManager.PasswordSignInAsync(
                     model.Email,
@@ -74,61 +61,33 @@ namespace CampusLearn.Controllers
                     model.RememberMe,
                     lockoutOnFailure: false);
 
-                Console.WriteLine($"SignIn result: {result.Succeeded}");
-
                 if (result.Succeeded)
                 {
-                    Console.WriteLine("Login successful!");
-
-                    // Get user roles from Identity
                     var roles = await _userManager.GetRolesAsync(user);
-                    Console.WriteLine($"Identity Roles: {string.Join(", ", roles)}");
-
-                    // Use Identity roles first, fall back to user.Role from database
                     var userRole = roles.FirstOrDefault() ?? user.Role;
-                    Console.WriteLine($"Final role determined: {userRole}");
 
-                    // Redirect based on role - FIXED LOGIC
-                    if (!string.IsNullOrEmpty(userRole) && userRole.Equals("Tutor", StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(userRole) && userRole.Equals("TUTOR", StringComparison.OrdinalIgnoreCase))
                     {
-                        Console.WriteLine("Redirecting to TUTOR portal");
-                        return RedirectToAction("TutorPortal", "Home");
+                        return RedirectToAction("TutorPortal", "Portal");
                     }
                     else
                     {
-                        Console.WriteLine("Redirecting to STUDENT portal");
-                        return RedirectToAction("StudentPortal", "Home");
+                        return RedirectToAction("StudentPortal", "Portal");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("PasswordSignInAsync failed");
                     ModelState.AddModelError("", "Invalid login attempt.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"EXCEPTION during login: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 ModelState.AddModelError("", "An error occurred during login.");
             }
 
             return View(model);
         }
-        private IActionResult RedirectToRolePortal(string role)
-        {
-            Console.WriteLine($"Redirecting based on role: {role}");
 
-            var redirectResult = role?.ToLower() switch
-            {
-                "student" => RedirectToAction("StudentPortal", "Home"),
-                "tutor" => RedirectToAction("TutorPortal", "Home"),
-                _ => RedirectToAction("Index", "Home")
-            };
-
-            Console.WriteLine($"Redirecting to: {redirectResult}");
-            return redirectResult;
-        }
         [HttpGet]
         public IActionResult Register()
         {
@@ -137,73 +96,123 @@ namespace CampusLearn.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(Registration model)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            Console.WriteLine("=== REGISTRATION STARTED ===");
+            Console.WriteLine($"Email: {model.Email}, FullName: {model.FullName}, Role: {model.Role}");
+
             if (ModelState.IsValid)
             {
+                Console.WriteLine("ModelState is VALID");
+
                 try
                 {
+                    // Check if user already exists
+                    Console.WriteLine("Checking if user exists...");
+                    var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                    if (existingUser != null)
+                    {
+                        Console.WriteLine("User already exists!");
+                        ModelState.AddModelError("", "User with this email already exists.");
+                        return View(model);
+                    }
+
+                    Console.WriteLine("Creating new user object...");
                     var user = new Users
                     {
                         UserName = model.Email,
                         Email = model.Email,
                         FullName = model.FullName,
-                        Role = model.Role
+                        Role = model.Role?.ToUpper(),
+                        CreatedAt = DateTime.UtcNow,
+                        IsActive = true
                     };
 
+                    Console.WriteLine("Calling UserManager.CreateAsync...");
                     var result = await _userManager.CreateAsync(user, model.Password);
 
                     if (result.Succeeded)
                     {
-                        // Save registration record
-                        var registration = new Registration
+                        Console.WriteLine("User created SUCCESSFULLY!");
+                        Console.WriteLine($"User ID: {user.Id}");
+
+                        // Add user to role
+                        if (!string.IsNullOrEmpty(model.Role))
                         {
-                            FullName = model.FullName,
-                            Email = model.Email,
-                            Password = "REGISTERED",
-                            Role = model.Role
-                        };
+                            var roleName = model.Role.ToUpper();
+                            Console.WriteLine($"Adding user to role: {roleName}");
 
-                        _context.Registrations.Add(registration);
-                        await _context.SaveChangesAsync();
+                            // Ensure role exists
+                            if (!await _roleManager.RoleExistsAsync(roleName))
+                            {
+                                Console.WriteLine($"Creating role: {roleName}");
+                                await _roleManager.CreateAsync(new ApplicationRole(roleName));
+                            }
 
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                            var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                            if (roleResult.Succeeded)
+                            {
+                                Console.WriteLine("User added to role SUCCESSFULLY");
+                            }
+                            else
+                            {
+                                Console.WriteLine("FAILED to add user to role:");
+                                foreach (var error in roleResult.Errors)
+                                {
+                                    Console.WriteLine($"Role Error: {error.Description}");
+                                }
+                            }
+                        }
 
-                        // Pass success message to view
+                        Console.WriteLine("Setting success messages and redirecting to Login...");
                         TempData["RegistrationSuccess"] = true;
+                        TempData["SuccessMessage"] = "Thank you for registering! Please login with your credentials.";
 
-                        // Redirect based on role
-                        if (model.Role?.ToLower() == "tutor")
-                        {
-                            return RedirectToAction("TutorPortal", "Home");
-                        }
-                        else
-                        {
-                            return RedirectToAction("StudentPortal", "Home");
-                        }
+                        return RedirectToAction("Login", "Account");
                     }
-
-                    foreach (var error in result.Errors)
+                    else
                     {
-                        ModelState.AddModelError("", error.Description);
+                        Console.WriteLine("User creation FAILED:");
+                        foreach (var error in result.Errors)
+                        {
+                            Console.WriteLine($"Error: {error.Code} - {error.Description}");
+                            ModelState.AddModelError("", error.Description);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
-                    ModelState.AddModelError("", "An error occurred during registration.");
+                    Console.WriteLine($"EXCEPTION during registration:");
+                    Console.WriteLine($"Message: {ex.Message}");
+                    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                    ModelState.AddModelError("", $"An error occurred during registration: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("ModelState is INVALID:");
+                foreach (var key in ModelState.Keys)
+                {
+                    var errors = ModelState[key].Errors;
+                    if (errors.Count > 0)
+                    {
+                        Console.WriteLine($"Field: {key}");
+                        foreach (var error in errors)
+                        {
+                            Console.WriteLine($"  - {error.ErrorMessage}");
+                        }
+                    }
                 }
             }
 
+            Console.WriteLine("Returning to Register view with errors");
             return View(model);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            Console.WriteLine("Logout called");
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }

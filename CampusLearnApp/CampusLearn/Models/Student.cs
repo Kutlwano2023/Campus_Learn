@@ -1,28 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class Student
+    public class Student
     {
-        public int studentID { get; set; }
-        public string firstName { get; set; }
-        public string lastName { get; set; }
-        public string enrollmentDate { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string StudentId { get; set; }
 
-        public void enroll()
-            {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime EnrollmentDate { get; set; }
+        public string UserId { get; set; } // Link to Identity User
+
+        public void Enroll()
+        {
             //logic 
         }
-        public void submitAssesment()
+
+        public void SubmitAssessment()
         {
             //logic
         }
 
-        public void getReport()
+        public void GetReport()
         {
             //logic
         }

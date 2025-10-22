@@ -3,23 +3,36 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CampusLearn.Controllers
 {
+    [Authorize]
     public class DashboardController : Controller
     {
-        //Default page
-
-        
         public IActionResult Index()
         {
-            return View("StudentDasboard");
+            var userRole = User.IsInRole("TUTOR") ? "TUTOR" : "STUDENT";
+
+            if (userRole == "TUTOR")
+            {
+                return RedirectToAction("TutorDashboard");
+            }
+            else
+            {
+                return RedirectToAction("StudentDashboard");
+            }
         }
-        [Authorize(Roles ="Student")]
-        public IActionResult StudentDashboard() {
+
+        [Authorize(Roles = "STUDENT")]
+        public IActionResult StudentDashboard()
+        {
+            ViewBag.UserName = User.Identity.Name;
+            ViewBag.Role = "Student";
             return View();
         }
 
-        [Authorize(Roles ="Tutor")]
+        [Authorize(Roles = "TUTOR")]
         public IActionResult TutorDashboard()
         {
+            ViewBag.UserName = User.Identity.Name;
+            ViewBag.Role = "Tutor";
             return View();
         }
     }

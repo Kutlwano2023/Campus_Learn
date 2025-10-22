@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CampusLearn.Controllers
 {
-    [Authorize(Roles = "Tutor")]
+    [Authorize(Roles = "TUTOR")]
     public class TutorController : Controller
     {
         public IActionResult Dashboard()
         {
-            // Get current user info
             var userName = User.Identity.Name;
             ViewBag.UserName = userName;
             ViewBag.Role = "Tutor";

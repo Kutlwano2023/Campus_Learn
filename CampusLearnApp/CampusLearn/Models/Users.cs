@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AspNetCore.Identity.MongoDbCore.Models;
+using MongoDbGenericRepository.Attributes;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CampusLearn.Models
 {
-    public class Users : IdentityUser
+    [CollectionName("Users")] // This should match your actual collection name
+    public class Users : MongoIdentityUser<Guid>
     {
         [Required]
         [StringLength(100)]
@@ -12,20 +13,10 @@ namespace CampusLearn.Models
 
         [Required]
         [StringLength(50)]
-        public string? Role { get; set; }
+        public string Role { get; set; }
 
-        private object BuildUserContext(Users user)
-        {
-            return new
-            {
-                userRole = user.Role,
-                userName = user.FullName,
-                userEmail = user.Email,
-                platform = "CampusLearn",
-                capabilities = user.Role == "Tutor" ?
-                    new[] { "assignment_management", "grading", "resource_upload" } :
-                    new[] { "assignment_submission", "resource_access", "progress_tracking" }
-            };
-        }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime LastLogin { get; set; } = DateTime.UtcNow;
+        public bool IsActive { get; set; } = true;
     }
 }

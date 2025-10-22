@@ -1,20 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
-namespace CampusLearnApplication.Models
+namespace CampusLearn.Models
 {
-    internal class Topic
+    public class Topic
     {
-        public int topicID { get; set; }
-        public string topicName { get; set; }
-        public string description { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string TopicId { get; set; }
 
-        public void addMaterial()
+        [Required]
+        public string TopicName { get; set; }
+
+        public string Description { get; set; }
+
+        [Required]
+        public string ModuleId { get; set; }
+
+        public int Order { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        // Learning materials associated with this topic
+        public List<string> MaterialUrls { get; set; } = new List<string>();
+        public List<string> VideoUrls { get; set; } = new List<string>();
+
+        public void AddMaterial(string materialUrl)
         {
-            //logic 
+            MaterialUrls.Add(materialUrl);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void AddVideo(string videoUrl)
+        {
+            VideoUrls.Add(videoUrl);
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }

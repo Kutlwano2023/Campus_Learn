@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CampusLearn.Data;
 using CampusLearn.Models;
+using CampusLearn.Services;
+using System.Text.Json;
+using MongoDB.Driver;
 
 namespace CampusLearn.Controllers
 {
@@ -9,11 +10,15 @@ namespace CampusLearn.Controllers
     [Route("api/[controller]")]
     public class TestController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly MongoService _mongoService;
+        private readonly IChatService _chatService;
+        private readonly IConfiguration _configuration;
 
-        public TestController(AppDbContext context)
+        public TestController(MongoService mongoService, IChatService chatService, IConfiguration configuration)
         {
-            _context = context;
+            _mongoService = mongoService;
+            _chatService = chatService;
+            _configuration = configuration;
         }
 
         [HttpGet("chat-data")]
@@ -21,27 +26,26 @@ namespace CampusLearn.Controllers
         {
             try
             {
-                var conversations = await _context.ChatConversations
-                    .Include(c => c.Messages)
-                    .ToListAsync();
+                var conversations = await _mongoService.ChatConversations.Find(_ => true).ToListAsync();
+                var messages = await _mongoService.ChatMessages.Find(_ => true).ToListAsync();
+                var users = await _mongoService.Users.Find(_ => true).ToListAsync();
 
                 return Ok(new
                 {
                     TotalConversations = conversations.Count,
+                    TotalMessages = messages.Count,
+                    TotalUsers = users.Count,
                     Conversations = conversations.Select(c => new
                     {
                         c.ConversationId,
                         c.Title,
                         c.UserId,
-                        MessageCount = c.Messages.Count,
+                        c.ConversationType,
+                        c.ChatbaseChatId,
+                        c.Status,
+                        MessageCount = messages.Count(m => m.ConversationId == c.ConversationId),
                         LastUpdated = c.UpdatedAt,
-                        Messages = c.Messages.Select(m => new
-                        {
-                            m.MessageId,
-                            m.MessageText,
-                            Sender = m.IsUserMessage ? "User" : "AI",
-                            m.CreatedAt
-                        })
+                        Created = c.CreatedAt
                     })
                 });
             }
@@ -56,20 +60,17 @@ namespace CampusLearn.Controllers
         {
             try
             {
-                var canConnect = await _context.Database.CanConnectAsync();
-                var usersCount = await _context.Users.CountAsync();
-                var conversationsCount = await _context.ChatConversations.CountAsync();
-                var messagesCount = await _context.ChatMessages.CountAsync();
-                var materialsCount = await _context.LearningMaterials.CountAsync();
+                var usersCount = await _mongoService.Users.CountDocumentsAsync(_ => true);
+                var conversationsCount = await _mongoService.ChatConversations.CountDocumentsAsync(_ => true);
+                var messagesCount = await _mongoService.ChatMessages.CountDocumentsAsync(_ => true);
 
                 return Ok(new
                 {
-                    DatabaseConnected = canConnect,
+                    DatabaseConnected = true,
                     UsersCount = usersCount,
                     ConversationsCount = conversationsCount,
                     MessagesCount = messagesCount,
-                    MaterialsCount = materialsCount,
-                    Status = "Database is working correctly"
+                    Status = "MongoDB is working correctly"
                 });
             }
             catch (Exception ex)
@@ -82,36 +83,38 @@ namespace CampusLearn.Controllers
             }
         }
 
-        [HttpGet("current-database")]
-        public async Task<IActionResult> GetCurrentDatabase()
+        [HttpGet("health")]
+        public async Task<IActionResult> HealthCheck()
         {
             try
             {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
+                var databaseStatus = await _mongoService.Users.Find(_ => true).AnyAsync();
+                var chatbaseConfig = _configuration.GetSection("ChatBase");
+                var hasChatbaseConfig = !string.IsNullOrEmpty(chatbaseConfig["ApiKey"]);
 
-                var command = connection.CreateCommand();
-                command.CommandText = "SELECT current_database(), current_schema()";
-
-                var result = await command.ExecuteReaderAsync();
-                await result.ReadAsync();
-
-                var dbName = result.GetString(0);
-                var schema = result.GetString(1);
-
-                return Ok(new
+                var healthStatus = new
                 {
-                    Database = dbName,
-                    Schema = schema,
-                    ConnectionString = connection.ConnectionString
-                });
+                    Status = "Healthy",
+                    Timestamp = DateTime.UtcNow,
+                    Database = databaseStatus ? "Connected" : "Disconnected",
+                    Chatbase = hasChatbaseConfig ? "Configured" : "Not Configured",
+                    Services = new
+                    {
+                        Database = true,
+                        ChatService = _chatService != null,
+                        Configuration = true
+                    }
+                };
+
+                return Ok(healthStatus);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
+                return StatusCode(503, new
                 {
-                    error = ex.Message,
-                    fullError = ex.ToString()
+                    Status = "Unhealthy",
+                    Timestamp = DateTime.UtcNow,
+                    Error = ex.Message
                 });
             }
         }
