@@ -66,6 +66,9 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<MongoService>();
 builder.Services.AddScoped<RoleSeeder>();
 builder.Services.AddScoped<UserService>();
+// If NotificationService is the in-memory/demo service, singleton preserves seeded data
+builder.Services.AddSingleton<INotificationService, NotificationService>();
+// If NotificationService uses MongoService (depends on scoped services) use AddScoped<INotificationService, NotificationService>();
 
 // Add HttpContextAccessor for accessing current user in services
 builder.Services.AddHttpContextAccessor();
