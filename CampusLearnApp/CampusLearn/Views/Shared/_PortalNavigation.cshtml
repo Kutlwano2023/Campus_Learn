@@ -1,105 +1,172 @@
-﻿﻿@{
-var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+﻿@{
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var role = User.IsInRole("TUTOR") ? "Tutor" : "Student";
 }
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <!-- Brand/Logo -->
-        <a class="navbar-brand" asp-controller="Portal" asp-action="Dashboard">
-            <strong>Campus Learn</strong>
-            <small class="d-block" style="font-size: 0.7rem; opacity: 0.8;">v2.0</small>
+
+<!-- Sidebar Container -->
+<aside class="h-screen w-64 bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-50">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b">
+        <h1 class="text-lg font-semibold text-gray-900">Campus Learn</h1>
+        <span class="text-xs text-gray-500">v2.0</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-6 space-y-2">
+        <!-- Dashboard -->
+        <a asp-controller="Portal" asp-action="Dashboard"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-tachometer-alt me-2 text-blue-600"></i>
+            <span>Dashboard</span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portalNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <!-- Student Portal (Only for Students) -->
+        @if (role == "Student")
+        {
+            <a asp-controller="Portal" asp-action="StudentPortal"
+               class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                <i class="fas fa-user-graduate me-2 text-blue-600"></i>
+                <span>Student Portal</span>
+            </a>
+        }
 
-        <div class="collapse navbar-collapse" id="portalNavbar">
-            <!-- Main Navigation Items -->
-            <ul class="navbar-nav me-auto">
-                <!-- Dashboard -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="Dashboard">
-                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+        <!-- Tutor Portal (Only for Tutors) -->
+        @if (role == "Tutor")
+        {
+            <a asp-controller="Portal" asp-action="TutorPortal"
+               class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                <i class="fas fa-chalkboard-teacher me-2 text-blue-600"></i>
+                <span>Tutor Portal</span>
+            </a>
+        }
+
+        <!-- Schedule Session -->
+        <a asp-controller="Portal" asp-action="ScheduleSession"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-calendar-alt me-2 text-blue-600"></i>
+            <span>Schedule Session</span>
+        </a>
+
+        <!-- Resources -->
+        <a asp-controller="Portal" asp-action="Resources"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-folder-open me-2 text-blue-600"></i>
+            <span>Resources</span>
+        </a>
+
+        <!-- Quiz Portal -->
+        <a asp-controller="Portal" asp-action="QuizPortal"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-puzzle-piece me-2 text-blue-600"></i>
+            <span>Quiz Portal</span>
+        </a>
+
+        <!-- Tests -->
+        <a asp-controller="Portal" asp-action="Tests"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-file-signature me-2 text-blue-600"></i>
+            <span>Tests</span>
+        </a>
+
+        <!-- Assignments -->
+        <a asp-controller="Portal" asp-action="Assignments"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-tasks me-2 text-blue-600"></i>
+            <span>Assignments</span>
+        </a>
+
+        <!-- Forum -->
+        <a asp-controller="Portal" asp-action="Forum"
+           class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+            <i class="fas fa-comments me-2 text-blue-600"></i>
+            <span>Forum</span>
+        </a>
+    </nav>
+
+    <!-- User Menu at Bottom -->
+    <div class="p-4 border-t">
+        <div class="dropdown relative">
+            <button class="flex items-center w-full p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition dropdown-toggle"
+                    type="button" id="userDropdown" data-bs-toggle="dropdown">
+                <i class="fas fa-user-circle me-2 text-blue-600"></i>
+                <span class="flex-1 text-left">@ViewBag.UserName</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </button>
+            <ul class="dropdown-menu absolute bottom-full left-0 mb-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg hidden"
+                aria-labelledby="userDropdown">
+                <li>
+                    <a asp-controller="Portal" asp-action="Profile"
+                       class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 rounded-t-lg">
+                        <i class="fas fa-user me-2 text-sm"></i>
+                        <span>Profile</span>
                     </a>
                 </li>
-
-                <!-- Student Portal -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="StudentPortal">
-                        <i class="fas fa-user-graduate me-1"></i>Student Portal
+                <li>
+                    <a asp-controller="Portal" asp-action="Settings"
+                       class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-cog me-2 text-sm"></i>
+                        <span>Settings</span>
                     </a>
                 </li>
-
-                <!-- Schedule Session -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="ScheduleSession">
-                        <i class="fas fa-calendar-alt me-1"></i>Schedule Session
-                    </a>
-                </li>
-
-                <!-- Resources -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="Resources">
-                        <i class="fas fa-folder-open me-1"></i>Resources
-                    </a>
-                </li>
-
-                <!-- Quiz Portal -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="QuizPortal">
-                        <i class="fas fa-puzzle-piece me-1"></i>Quiz Portal
-                    </a>
-                </li>
-
-                <!-- Tests -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="Tests">
-                        <i class="fas fa-file-signature me-1"></i>Tests
-                    </a>
-                </li>
-
-                <!-- Assignments -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="Assignments">
-                        <i class="fas fa-tasks me-1"></i>Assignments
-                    </a>
-                </li>
-
-                <!-- Forum -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Portal" asp-action="Forum">
-                        <i class="fas fa-comments me-1"></i>Forum
-                    </a>
-                </li>
-            </ul>
-
-            <!-- User Menu -->
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>@ViewBag.UserName
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" asp-controller="Portal" asp-action="Profile"><i class="fas fa-user me-1"></i>Profile</a></li>
-                        <li><a class="dropdown-item" asp-controller="Portal" asp-action="Settings"><i class="fas fa-cog me-1"></i>Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-1"></i>Logout</button>
-                            </form>
-                        </li>
-                    </ul>
+                <li><hr class="border-gray-200 my-1"></li>
+                <li>
+                    <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-blue-50 rounded-b-lg">
+                            <i class="fas fa-sign-out-alt me-2 text-sm"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>
     </div>
-</nav>
+</aside>
+
+<!-- Main Content Area Spacer -->
+<div class="ml-64">
+    <!-- This div pushes the main content to the right of the sidebar -->
+</div>
+
+<!-- Custom CSS for dropdown functionality -->
+<style>
+    .dropdown:hover .dropdown-menu {
+        display: block;
+    }
+
+    .dropdown-menu {
+        min-width: 200px;
+    }
+</style>
 
 @if (User.Identity.IsAuthenticated)
 {
     <script>
         // Set user ID for messaging system
         document.body.setAttribute('data-user-id', '@userId');
+
+        // Bootstrap dropdown functionality for sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var menu = this.nextElementSibling;
+                    menu.classList.toggle('hidden');
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
+                        menu.classList.add('hidden');
+                    });
+                }
+            });
+        });
     </script>
 }
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>

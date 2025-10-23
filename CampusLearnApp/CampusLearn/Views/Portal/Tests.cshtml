@@ -1,107 +1,250 @@
-﻿@{
-    ViewData["Title"] = "Tests";
-    Layout = "_Layout";
+﻿﻿@{
+ViewData["Title"] = "Tests";
+Layout = "_Layout";
 }
 
 <partial name="_PortalNavigation" />
-<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/tests.css" asp-append-version="true" />
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Tests</h1>
-
-            @if (ViewBag.Role == "Tutor")
-            {
-                <div class="alert alert-info">
-                    <h4>Tutor Test Management</h4>
-                    <p>Create and manage tests, view results, and analyze student performance.</p>
+<div class="dashboard-container">
+    <!-- Blue Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Tests</h1>
+                <p class="dashboard-subtitle">Track your testing progress and discover new challenges</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Learning Progress • <strong>Active</strong>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-edit fa-3x text-primary mb-3"></i>
-                                <h5>Create Test</h5>
-                                <a href="#" class="btn btn-primary">New Test</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-check-double fa-3x text-success mb-3"></i>
-                                <h5>Grade Tests</h5>
-                                <a href="#" class="btn btn-success">Grade Submissions</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
-                                <h5>Test Analytics</h5>
-                                <a href="#" class="btn btn-info">View Analytics</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <p>View your test schedule, take tests, and review your results.</p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3>My Tests</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Test Name</th>
-                                        <th>Subject</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                        <th>Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Midterm Exam</td>
-                                        <td>Mathematics</td>
-                                        <td>Dec 10, 2024</td>
-                                        <td><span class="badge bg-success">Completed</span></td>
-                                        <td><strong>88%</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Final Project</td>
-                                        <td>Computer Science</td>
-                                        <td>Dec 20, 2024</td>
-                                        <td><span class="badge bg-warning">Upcoming</span></td>
-                                        <td>-</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Lab Practical</td>
-                                        <td>Physics</td>
-                                        <td>Dec 15, 2024</td>
-                                        <td><span class="badge bg-info">In Progress</span></td>
-                                        <td>-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <div class="mt-3">
-                <a asp-controller="Portal" asp-action="Dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
             </div>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="container">
+            <!-- Tabs -->
+            <div class="tabs" role="tablist" aria-label="Test Tabs">
+                <div class="tab active">Available Tests</div>
+                <div class="tab">Tests in Progress</div>
+                <div class="tab">Completed Tests</div>
+            </div>
+
+            <!-- Search + filter -->
+            <div class="bar">
+                <div class="search">
+                    <input placeholder="Search tests..." aria-label="Search tests" id="searchInput" />
+                </div>
+                <button class="btn-outline" id="filterButton">Filter</button>
+            </div>
+
+            <!-- Category chips -->
+            <div class="chips" aria-label="Categories">
+                <button class="chip active">All Categories</button>
+                <button class="chip">React</button>
+                <button class="chip">JavaScript</button>
+                <button class="chip">CSS</button>
+                <button class="chip">Backend</button>
+                <button class="chip">Beginner</button>
+                <button class="chip">Intermediate</button>
+                <button class="chip">Advanced</button>
+            </div>
+
+            <!-- Available Tests grid -->
+            <div class="grid two" id="availableTestsSection">
+                <!-- Advanced React Patterns -->
+                <article class="card">
+                    <div class="head">
+                        <div class="title">Advanced React Patterns</div>
+                        <span class="badge level-adv">Advanced</span>
+                    </div>
+                    <div class="subtitle sub">
+                        Test your knowledge of advanced React patterns and architectural concepts
+                    </div>
+                    <div class="meta">
+                        <span><b>25</b> Questions</span>
+                        <span><b>30 min</b> Duration</span>
+                        <span><b>74%</b> Avg Score</span>
+                    </div>
+                    <div class="author">
+                        <span>👩‍🏫</span> <span>Sarah Chen</span> <span class="star">★ 4.8</span>
+                    </div>
+                    <div class="cta-row">
+                        <button class="btn-primary" data-test-id="1">Start Test</button>
+                    </div>
+                </article>
+
+                <!-- Node.js Performance Testing -->
+                <article class="card">
+                    <div class="head">
+                        <div class="title">Node.js Performance Testing</div>
+                        <span class="badge level-adv">Advanced</span>
+                    </div>
+                    <div class="subtitle sub">
+                        Evaluate your understanding of Node.js performance optimization techniques
+                    </div>
+                    <div class="meta">
+                        <span><b>20</b> Questions</span>
+                        <span><b>25 min</b> Duration</span>
+                        <span><b>68%</b> Avg Score</span>
+                    </div>
+                    <div class="author">
+                        <span>👨‍🏫</span> <span>David Kim</span> <span class="star">★ 4.7</span>
+                    </div>
+                    <div class="cta-row">
+                        <button class="btn-primary" data-test-id="2">Start Test</button>
+                    </div>
+                </article>
+
+                <!-- CSS Advanced Layouts -->
+                <article class="card span-2">
+                    <div class="head">
+                        <div class="title">CSS Advanced Layouts</div>
+                        <span class="badge level-int">Intermediate</span>
+                    </div>
+                    <div class="subtitle sub">
+                        Master complex CSS layout techniques and responsive design principles
+                    </div>
+                    <div class="meta">
+                        <span><b>18</b> Questions</span>
+                        <span><b>22 min</b> Duration</span>
+                        <span><b>81%</b> Avg Score</span>
+                    </div>
+                    <div class="author">
+                        <span>👩‍🏫</span> <span>Emma Wilson</span> <span class="star">★ 4.3</span>
+                    </div>
+                    <div class="cta-row">
+                        <button class="btn-primary" data-test-id="3">Start Test</button>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Tests in Progress -->
+            <h3 class="section-title" id="progressSectionTitle"><span class="check">⏳</span>Tests in Progress</h3>
+
+            <div class="grid" id="progressTestsSection">
+                <article class="card">
+                    <div class="head">
+                        <div class="title">React Hooks Mastery</div>
+                        <span class="badge level-int">Intermediate • Due in 2 days</span>
+                    </div>
+                    <div class="author m6">
+                        <span>👩‍🏫</span> <span>Sarah Chen</span>
+                        <span class="muted">Questions answered: 15/25</span>
+                    </div>
+                    <div class="progress-wrap">
+                        <div class="progress-label"><span>Progress</span><span>60%</span></div>
+                        <div class="bar-track"><div class="bar-fill w-60"></div></div>
+                    </div>
+                    <div class="cta-row">
+                        <button class="btn-primary" data-test-id="4">Continue Test</button>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="head">
+                        <div class="title">JavaScript Async/Await</div>
+                        <span class="badge level-adv">Advanced • Due in 5 days</span>
+                    </div>
+                    <div class="author m6">
+                        <span>👨‍🏫</span> <span>Mike Rodriguez</span>
+                        <span class="muted">Questions answered: 8/20</span>
+                    </div>
+                    <div class="progress-wrap">
+                        <div class="progress-label"><span>Progress</span><span>30%</span></div>
+                        <div class="bar-track"><div class="bar-fill w-30"></div></div>
+                    </div>
+                    <div class="cta-row">
+                        <button class="btn-primary" data-test-id="5">Continue Test</button>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="head">
+                        <div class="title">CSS Flexbox Challenge</div>
+                        <span class="badge level-beg">Beginner • Due in 1 day</span>
+                    </div>
+                    <div class="author m6">
+                        <span>👩‍🏫</span> <span>Emma Wilson</span>
+                        <span class="muted">Questions answered: 16/20</span>
+                    </div>
+                    <div class="progress-wrap">
+                        <div class="progress-label"><span>Progress</span><span>80%</span></div>
+                        <div class="bar-track"><div class="bar-fill w-80"></div></div>
+                    </div>
+                    <div class="cta-row">
+                        <button class="btn-primary" data-test-id="6">Continue Test</button>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Completed Tests -->
+            <h3 class="section-title" id="completedSectionTitle"><span class="check">✔</span>Completed Tests</h3>
+
+            <div class="grid" id="completedTestsSection">
+                <article class="card">
+                    <div class="head">
+                        <div>
+                            <div class="title">HTML Semantics Test</div>
+                            <div class="subtitle">Completed: Dec 10 • Attempts: 1 — Dr. Lisa Wang</div>
+                        </div>
+                        <div class="right-actions">
+                            <span class="pill-score">95%</span>
+                            <span class="badge level-beg">Beginner</span>
+                            <button class="btn-small" data-test-id="7">Review</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="head">
+                        <div>
+                            <div class="title">CSS Grid Layout</div>
+                            <div class="subtitle">Completed: Dec 8 • Attempts: 2 — Tom Bradley</div>
+                        </div>
+                        <div class="right-actions">
+                            <span class="pill-score">88%</span>
+                            <span class="badge level-int">Intermediate</span>
+                            <button class="btn-small" data-test-id="8">Review</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="head">
+                        <div>
+                            <div class="title">JavaScript Fundamentals</div>
+                            <div class="subtitle">Completed: Dec 5 • Attempts: 1 — Alex Chen</div>
+                        </div>
+                        <div class="right-actions">
+                            <span class="pill-score">92%</span>
+                            <span class="badge level-beg">Beginner</span>
+                            <button class="btn-small" data-test-id="9">Review</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="head">
+                        <div>
+                            <div class="title">React Components Quiz</div>
+                            <div class="subtitle">Completed: Dec 3 • Attempts: 1 — Maria Garcia</div>
+                        </div>
+                        <div class="right-actions">
+                            <span class="pill-score">84%</span>
+                            <span class="badge level-int">Intermediate</span>
+                            <button class="btn-small" data-test-id="10">Review</button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </main>
 </div>
+
+@section Scripts {
+    <script src="~/js/tests.js" asp-append-version="true"></script>
+}

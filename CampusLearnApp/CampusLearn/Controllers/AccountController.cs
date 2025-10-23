@@ -124,8 +124,6 @@ namespace CampusLearn.Controllers
                         Email = model.Email,
                         FullName = model.FullName,
                         Role = model.Role?.ToUpper(),
-                        CreatedAt = DateTime.UtcNow,
-                        IsActive = true
                     };
 
                     Console.WriteLine("Calling UserManager.CreateAsync...");
