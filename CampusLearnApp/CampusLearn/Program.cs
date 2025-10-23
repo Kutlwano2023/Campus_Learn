@@ -133,3 +133,11 @@ app.MapControllerRoute(
 );
 
 app.Run();
+
+//Contributors
+//Magane Letsoalo (601101) 
+//Reagile Motsepe (600665)
+//Yanga Mazibuko (600459)
+//Vunene Khoza (600676)
+//Onalerona Lefoka (600453)
+//Kutlwano Thaga (601349)
