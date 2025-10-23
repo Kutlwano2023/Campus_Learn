@@ -37,10 +37,10 @@ namespace CampusLearn.Controllers
         [Authorize(Roles = "TUTOR")]
         public IActionResult TutorPortal()
         {
-            ViewBag.UserName = User.Identity.Name;
-            ViewBag.Role = "Tutor";
-            _logger.LogInformation("Tutor {UserName} accessed tutor portal", User.Identity.Name);
-            return View();
+            _logger.LogInformation("Tutor {UserName} requested TutorPortal; redirecting to TutorController", User.Identity.Name);
+
+            // FIX: Redirect to the TutorController's TutorPortal action
+            return RedirectToAction("TutorPortal", "Tutor");
         }
 
         [HttpGet]

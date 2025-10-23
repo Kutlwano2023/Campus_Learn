@@ -1,0 +1,710 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Session Management";
+    Layout = "_Layout";
+
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "Tutor";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Session Management</h1>
+                <p class="dashboard-subtitle">Organize and manage your teaching sessions</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    <span id="sessionStats">Loading sessions...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Session Calendar & List -->
+            <div class="main-column">
+                <!-- Session Calendar -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Session Calendar</h2>
+                            <p class="section-description">View and manage your schedule</p>
+                        </div>
+                        <div class="calendar-nav">
+                            <button class="btn btn-outline btn-sm" id="prevWeek">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="currentWeek" class="calendar-title">Loading...</span>
+                            <button class="btn btn-outline btn-sm" id="nextWeek">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="calendar-day">Mon</div>
+                            <div class="calendar-day">Tue</div>
+                            <div class="calendar-day">Wed</div>
+                            <div class="calendar-day">Thu</div>
+                            <div class="calendar-day">Fri</div>
+                            <div class="calendar-day">Sat</div>
+                            <div class="calendar-day">Sun</div>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Calendar will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Sessions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Upcoming Sessions</h2>
+                            <p class="section-description">Next 7 days of scheduled sessions</p>
+                        </div>
+                        <a href="#" class="btn btn-outline" id="scheduleNewSession">
+                            <i class="fas fa-plus me-2"></i>New Session
+                        </a>
+                    </div>
+                    <div class="sessions-list" id="upcomingSessions">
+                        <!-- Sessions will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Session Details & Actions -->
+            <div class="sidebar-column">
+                <!-- Session Statistics -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Session Statistics</h2>
+                        <p class="section-description">This month's teaching overview</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">24</div>
+                                <div class="stat-label">Hours Taught</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">18</div>
+                                <div class="stat-label">Sessions Completed</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Active Students</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">94%</div>
+                                <div class="stat-label">Attendance Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Session Actions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                        <p class="section-description">Manage your sessions</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="action-item" id="bulkSchedule">
+                            <div class="action-icon bg-primary">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Bulk Schedule</h4>
+                                <p>Schedule multiple sessions</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="setAvailability">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Set Availability</h4>
+                                <p>Define your working hours</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="sessionTemplates">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Session Templates</h4>
+                                <p>Use pre-defined templates</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="exportSchedule">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Export Schedule</h4>
+                                <p>Download your calendar</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Session Activity -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <p class="section-description">Latest session updates</p>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Session completed</h4>
+                                <p>Algebra with Sarah Johnson</p>
+                                <p class="activity-time">2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-primary">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>New session scheduled</h4>
+                                <p>Physics study group</p>
+                                <p class="activity-time">Yesterday</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-warning">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Session rescheduled</h4>
+                                <p>Chemistry with Michael Brown</p>
+                                <p class="activity-time">2 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Session Details Modal -->
+<div class="modal fade" id="sessionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sessionModalTitle">Session Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="sessionModalBody">
+                <!-- Session details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Sample session data
+        const sessions = [
+            {
+                id: 1,
+                studentName: "Sarah Johnson",
+                subject: "Algebra",
+                date: new Date(new Date().setDate(new Date().getDate() + 1)),
+                startTime: "14:00",
+                endTime: "15:00",
+                duration: 60,
+                type: "one-on-one",
+                status: "scheduled",
+                notes: "Quadratic equations review",
+                materials: ["worksheet.pdf", "video-link"]
+            },
+            {
+                id: 2,
+                studentName: "Physics Study Group",
+                subject: "Physics",
+                date: new Date(new Date().setDate(new Date().getDate() + 2)),
+                startTime: "10:00",
+                endTime: "11:30",
+                duration: 90,
+                type: "group",
+                status: "scheduled",
+                notes: "Mechanics concepts",
+                materials: ["lab-guide.pdf"]
+            },
+            {
+                id: 3,
+                studentName: "Michael Brown",
+                subject: "Chemistry",
+                date: new Date(new Date().setDate(new Date().getDate() + 3)),
+                startTime: "16:00",
+                endTime: "17:00",
+                duration: 60,
+                type: "one-on-one",
+                status: "scheduled",
+                notes: "Organic chemistry basics",
+                materials: []
+            }
+        ];
+
+        let currentWeek = new Date();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSessionManagement();
+        });
+
+        function initializeSessionManagement() {
+            renderCalendar();
+            loadUpcomingSessions();
+            setupEventListeners();
+            updateSessionStats();
+        }
+
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            const weekStart = getWeekStart(currentWeek);
+
+            updateWeekDisplay(weekStart);
+            calendarGrid.innerHTML = '';
+
+            for (let i = 0; i < 42; i++) { // 6 weeks * 7 days
+                const date = new Date(weekStart);
+                date.setDate(weekStart.getDate() + i);
+
+                const dayElement = document.createElement('div');
+                dayElement.className = `calendar-day ${isToday(date) ? 'today' : ''} ${isCurrentMonth(date, currentWeek) ? 'current-month' : 'other-month'}`;
+
+                const daySessions = sessions.filter(session =>
+                    isSameDay(session.date, date)
+                );
+
+                dayElement.innerHTML = `
+                    <div class="calendar-date">${date.getDate()}</div>
+                    <div class="calendar-events">
+                        ${daySessions.map(session => `
+                            <div class="calendar-event ${session.type}" onclick="openSessionModal(${session.id})">
+                                <span class="event-time">${session.startTime}</span>
+                                <span class="event-title">${session.studentName}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        function loadUpcomingSessions() {
+            const container = document.getElementById('upcomingSessions');
+            const upcoming = sessions
+                .filter(session => session.date >= new Date())
+                .sort((a, b) => a.date - b.date)
+                .slice(0, 5);
+
+            container.innerHTML = '';
+
+            if (upcoming.length === 0) {
+                container.innerHTML = '<div class="no-sessions">No upcoming sessions</div>';
+                return;
+            }
+
+            upcoming.forEach(session => {
+                const sessionElement = document.createElement('div');
+                sessionElement.className = 'session-card';
+                sessionElement.innerHTML = `
+                    <div class="session-avatar bg-${session.type === 'group' ? 'success' : 'primary'}">
+                        ${session.type === 'group' ? 'GS' : session.studentName.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div class="session-details">
+                        <div class="session-info">
+                            <h4>${session.studentName}</h4>
+                            <p class="session-meta">
+                                <i class="fas fa-book me-1"></i>${session.subject} • ${session.duration} min
+                            </p>
+                            <div class="session-tags">
+                                <span class="tag ${session.type === 'group' ? 'tag-group' : 'tag-video'}">
+                                    <i class="fas fa-${session.type === 'group' ? 'users' : 'video'} me-1"></i>
+                                    ${session.type === 'group' ? 'Group' : 'One-on-One'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="session-actions">
+                            <div class="session-time">
+                                <span class="time-badge ${getSessionStatusClass(session)}">
+                                    ${formatSessionDate(session.date)} ${session.startTime}
+                                </span>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="openSessionModal(${session.id})">
+                                <i class="fas fa-eye me-1"></i>View
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(sessionElement);
+            });
+        }
+
+        function setupEventListeners() {
+            // Calendar navigation
+            document.getElementById('prevWeek').addEventListener('click', () => {
+                currentWeek.setDate(currentWeek.getDate() - 7);
+                renderCalendar();
+            });
+
+            document.getElementById('nextWeek').addEventListener('click', () => {
+                currentWeek.setDate(currentWeek.getDate() + 7);
+                renderCalendar();
+            });
+
+            // Quick actions
+            document.getElementById('scheduleNewSession').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening session scheduler...', 'info');
+            });
+
+            document.getElementById('bulkSchedule').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening bulk scheduling tool...', 'info');
+            });
+
+            document.getElementById('setAvailability').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening availability settings...', 'info');
+            });
+
+            document.getElementById('sessionTemplates').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Loading session templates...', 'info');
+            });
+
+            document.getElementById('exportSchedule').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Exporting schedule...', 'info');
+            });
+        }
+
+        function openSessionModal(sessionId) {
+            const session = sessions.find(s => s.id === sessionId);
+            if (!session) return;
+
+            document.getElementById('sessionModalTitle').textContent = `Session with ${session.studentName}`;
+
+            const modalBody = document.getElementById('sessionModalBody');
+            modalBody.innerHTML = `
+                <div class="session-detail-grid">
+                    <div class="detail-item">
+                        <label>Student:</label>
+                        <span>${session.studentName}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Subject:</label>
+                        <span>${session.subject}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Date & Time:</label>
+                        <span>${formatSessionDate(session.date)} ${session.startTime} - ${session.endTime}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Duration:</label>
+                        <span>${session.duration} minutes</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Type:</label>
+                        <span class="badge ${session.type === 'group' ? 'bg-success' : 'bg-primary'}">
+                            ${session.type === 'group' ? 'Group Session' : 'One-on-One'}
+                        </span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Notes:</label>
+                        <p>${session.notes || 'No additional notes'}</p>
+                    </div>
+                    ${session.materials.length > 0 ? `
+                    <div class="detail-item full-width">
+                        <label>Materials:</label>
+                        <div class="materials-list">
+                            ${session.materials.map(material => `
+                                <span class="material-item">
+                                    <i class="fas fa-file me-1"></i>${material}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="session-actions-modal">
+                    <button class="btn btn-primary" onclick="startSession(${session.id})">
+                        <i class="fas fa-play me-1"></i>Start Session
+                    </button>
+                    <button class="btn btn-outline" onclick="rescheduleSession(${session.id})">
+                        <i class="fas fa-calendar-alt me-1"></i>Reschedule
+                    </button>
+                    <button class="btn btn-outline" onclick="cancelSession(${session.id})">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('sessionModal'));
+            modal.show();
+        }
+
+        // Utility functions
+        function getWeekStart(date) {
+            const start = new Date(date);
+            const day = start.getDay();
+            const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(start.setDate(diff));
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return date.toDateString() === today.toDateString();
+        }
+
+        function isCurrentMonth(date, current) {
+            return date.getMonth() === current.getMonth() && date.getFullYear() === current.getFullYear();
+        }
+
+        function isSameDay(date1, date2) {
+            return date1.toDateString() === date2.toDateString();
+        }
+
+        function formatSessionDate(date) {
+            return date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function getSessionStatusClass(session) {
+            const now = new Date();
+            if (session.date < now) return 'badge-secondary';
+            if (session.date.toDateString() === now.toDateString()) return 'badge-warning';
+            return 'badge-info';
+        }
+
+        function updateWeekDisplay(weekStart) {
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+
+            document.getElementById('currentWeek').textContent =
+                `${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()}`;
+        }
+
+        function updateSessionStats() {
+            const completed = sessions.filter(s => s.status === 'completed').length;
+            const upcoming = sessions.filter(s => s.status === 'scheduled').length;
+            document.getElementById('sessionStats').textContent =
+                `${upcoming} Upcoming • ${completed} Completed`;
+        }
+
+        // Session action functions
+        function startSession(sessionId) {
+            showNotification('Starting session...', 'info');
+            // Implement session start logic
+        }
+
+        function rescheduleSession(sessionId) {
+            showNotification('Opening reschedule dialog...', 'info');
+            // Implement reschedule logic
+        }
+
+        function cancelSession(sessionId) {
+            if (confirm('Are you sure you want to cancel this session?')) {
+                showNotification('Session cancelled', 'warning');
+                // Implement cancel logic
+            }
+        }
+
+        // Add CSS for calendar and session management
+        const style = document.createElement('style');
+        style.textContent = `
+            .calendar-nav {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .calendar-title {
+                font-weight: 600;
+                min-width: 200px;
+                text-align: center;
+            }
+
+            .calendar-container {
+                margin-top: 1rem;
+            }
+
+            .calendar-header {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 1px;
+                background: var(--border);
+                border: 1px solid var(--border);
+            }
+
+            .calendar-header .calendar-day {
+                background: var(--surface);
+                padding: 0.75rem;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+            }
+
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 1px;
+                background: var(--border);
+                border: 1px solid var(--border);
+            }
+
+            .calendar-day {
+                background: var(--surface);
+                min-height: 120px;
+                padding: 0.5rem;
+                position: relative;
+            }
+
+            .calendar-day.other-month {
+                background: #f8fafc;
+                color: var(--text-muted);
+            }
+
+            .calendar-day.today {
+                background: #f0f9ff;
+            }
+
+            .calendar-date {
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+
+            .calendar-events {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .calendar-event {
+                background: var(--primary);
+                color: white;
+                padding: 2px 4px;
+                border-radius: 2px;
+                font-size: 0.7rem;
+                cursor: pointer;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .calendar-event.group {
+                background: var(--success);
+            }
+
+            .event-time {
+                font-weight: 600;
+                margin-right: 2px;
+            }
+
+            .session-detail-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .detail-item {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .detail-item.full-width {
+                grid-column: 1 / -1;
+            }
+
+            .detail-item label {
+                font-weight: 600;
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+            }
+
+            .materials-list {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .material-item {
+                display: flex;
+                align-items: center;
+                padding: 0.5rem;
+                background: var(--background);
+                border-radius: var(--radius);
+                font-size: 0.875rem;
+            }
+
+            .session-actions-modal {
+                display: flex;
+                gap: 0.5rem;
+                justify-content: flex-end;
+                border-top: 1px solid var(--border);
+                padding-top: 1rem;
+            }
+
+            .no-sessions {
+                text-align: center;
+                padding: 2rem;
+                color: var(--text-muted);
+                font-style: italic;
+            }
+
+            .tag-group {
+                background: #f0fdf4;
+                color: #166534;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

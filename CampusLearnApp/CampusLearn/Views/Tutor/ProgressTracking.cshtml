@@ -1,0 +1,992 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Progress Tracking";
+    Layout = "_Layout";
+
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "Tutor";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Progress Tracking</h1>
+                <p class="dashboard-subtitle">Monitor and analyze student learning progress</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <span id="progressStats">Loading progress data...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Progress Overview & Analytics -->
+            <div class="main-column">
+                <!-- Progress Overview -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Student Progress Overview</h2>
+                            <p class="section-description">Overall performance across all subjects</p>
+                        </div>
+                        <div class="progress-controls">
+                            <select class="form-select" id="timeRange">
+                                <option value="week">Last Week</option>
+                                <option value="month" selected>Last Month</option>
+                                <option value="quarter">Last Quarter</option>
+                                <option value="year">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="progress-charts">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h4>Average Grades by Subject</h4>
+                            </div>
+                            <div class="subject-bars">
+                                <div class="subject-bar">
+                                    <div class="subject-label">Mathematics</div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: 87%" data-value="87%"></div>
+                                    </div>
+                                    <div class="subject-value">87%</div>
+                                </div>
+                                <div class="subject-bar">
+                                    <div class="subject-label">Science</div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: 82%" data-value="82%"></div>
+                                    </div>
+                                    <div class="subject-value">82%</div>
+                                </div>
+                                <div class="subject-bar">
+                                    <div class="subject-label">English</div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: 78%" data-value="78%"></div>
+                                    </div>
+                                    <div class="subject-value">78%</div>
+                                </div>
+                                <div class="subject-bar">
+                                    <div class="subject-label">Programming</div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: 85%" data-value="85%"></div>
+                                    </div>
+                                    <div class="subject-value">85%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Student Progress -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Individual Progress</h2>
+                            <p class="section-description">Detailed progress for each student</p>
+                        </div>
+                        <select class="form-select" id="studentSelect">
+                            <option value="">Select Student...</option>
+                            <option value="1">Sarah Johnson</option>
+                            <option value="2">Michael Brown</option>
+                            <option value="3">David Lee</option>
+                            <option value="4">Emily Chen</option>
+                            <option value="5">Alex Rodriguez</option>
+                        </select>
+                    </div>
+                    <div class="student-progress-detail" id="studentProgressDetail">
+                        <div class="no-student-selected">
+                            <i class="fas fa-user-graduate"></i>
+                            <h4>Select a student to view detailed progress</h4>
+                            <p>Choose a student from the dropdown above to see their learning journey</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Alerts & Quick Insights -->
+            <div class="sidebar-column">
+                <!-- Progress Alerts -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Progress Alerts</h2>
+                        <p class="section-description">Students needing attention</p>
+                    </div>
+                    <div class="alerts-list">
+                        <div class="alert-item alert-warning">
+                            <div class="alert-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="alert-content">
+                                <h4>David Lee - Performance Drop</h4>
+                                <p>Math grade decreased by 15% this month</p>
+                                <div class="alert-actions">
+                                    <button class="btn btn-outline btn-sm">Review</button>
+                                    <button class="btn btn-primary btn-sm">Intervene</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert-item alert-info">
+                            <div class="alert-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="alert-content">
+                                <h4>Michael Brown - Attendance</h4>
+                                <p>Missed 3 sessions this month</p>
+                                <div class="alert-actions">
+                                    <button class="btn btn-outline btn-sm">Schedule</button>
+                                    <button class="btn btn-primary btn-sm">Contact</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert-item alert-success">
+                            <div class="alert-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="alert-content">
+                                <h4>Emily Chen - Excellent Progress</h4>
+                                <p>Improved by 12% in Mathematics</p>
+                                <div class="alert-actions">
+                                    <button class="btn btn-outline btn-sm">View</button>
+                                    <button class="btn btn-primary btn-sm">Reward</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Statistics -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Progress Statistics</h2>
+                        <p class="section-description">Key performance metrics</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">84%</div>
+                                <div class="stat-label">Avg. Progress</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-trending-up"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">+8%</div>
+                                <div class="stat-label">Overall Growth</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">92%</div>
+                                <div class="stat-label">Completion Rate</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">76%</div>
+                                <div class="stat-label">Attendance</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Progress Tools</h2>
+                        <p class="section-description">Manage and analyze progress</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="action-item" id="generateReports">
+                            <div class="action-icon bg-primary">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Progress Reports</h4>
+                                <p>Generate detailed reports</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="setGoals">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Set Goals</h4>
+                                <p>Define learning objectives</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="compareProgress">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Compare Progress</h4>
+                                <p>Benchmark performance</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="exportData">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Export Data</h4>
+                                <p>Download progress data</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Milestones -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Milestones</h2>
+                        <p class="section-description">Student achievements</p>
+                    </div>
+                    <div class="milestones-list">
+                        <div class="milestone-item">
+                            <div class="milestone-icon bg-success">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <div class="milestone-content">
+                                <h4>Sarah Johnson</h4>
+                                <p>Mastered Algebra Fundamentals</p>
+                                <span class="milestone-time">2 days ago</span>
+                            </div>
+                        </div>
+                        <div class="milestone-item">
+                            <div class="milestone-icon bg-primary">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="milestone-content">
+                                <h4>Emily Chen</h4>
+                                <p>Perfect score on Physics Quiz</p>
+                                <span class="milestone-time">1 week ago</span>
+                            </div>
+                        </div>
+                        <div class="milestone-item">
+                            <div class="milestone-icon bg-info">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div class="milestone-content">
+                                <h4>Alex Rodriguez</h4>
+                                <p>Completed writing project</p>
+                                <span class="milestone-time">2 weeks ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        // Sample progress data
+        const progressData = {
+            1: { // Sarah Johnson
+                name: "Sarah Johnson",
+                overallProgress: 92,
+                subjects: {
+                    math: { progress: 95, trend: "up", assignments: 8, average: 94 },
+                    science: { progress: 88, trend: "stable", assignments: 6, average: 87 },
+                    english: { progress: 90, trend: "up", assignments: 5, average: 91 }
+                },
+                attendance: 95,
+                milestones: [
+                    { title: "Algebra Mastery", date: "2024-01-15", type: "achievement" },
+                    { title: "Science Project", date: "2024-01-10", type: "completion" }
+                ],
+                goals: [
+                    { title: "Advanced Calculus", progress: 75, target: 100 },
+                    { title: "Physics Research", progress: 60, target: 100 }
+                ]
+            },
+            2: { // Michael Brown
+                name: "Michael Brown",
+                overallProgress: 78,
+                subjects: {
+                    science: { progress: 82, trend: "down", assignments: 7, average: 80 },
+                    math: { progress: 75, trend: "stable", assignments: 6, average: 76 }
+                },
+                attendance: 70,
+                milestones: [
+                    { title: "Chemistry Basics", date: "2024-01-12", type: "achievement" }
+                ],
+                goals: [
+                    { title: "Organic Chemistry", progress: 40, target: 100 },
+                    { title: "Advanced Math", progress: 55, target: 100 }
+                ]
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeProgressTracking();
+        });
+
+        function initializeProgressTracking() {
+            setupEventListeners();
+            updateProgressStats();
+            animateProgressBars();
+        }
+
+        function setupEventListeners() {
+            // Student selection
+            document.getElementById('studentSelect').addEventListener('change', function() {
+                const studentId = this.value;
+                if (studentId) {
+                    loadStudentProgress(studentId);
+                } else {
+                    showNoStudentSelected();
+                }
+            });
+
+            // Time range filter
+            document.getElementById('timeRange').addEventListener('change', function() {
+                updateProgressCharts(this.value);
+            });
+
+            // Quick actions
+            document.getElementById('generateReports').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Generating progress reports...', 'info');
+            });
+
+            document.getElementById('setGoals').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening goal setting...', 'info');
+            });
+
+            document.getElementById('compareProgress').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Loading comparison tool...', 'info');
+            });
+
+            document.getElementById('exportData').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Exporting progress data...', 'info');
+            });
+
+            // Alert actions
+            document.querySelectorAll('.alert-actions .btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const alertItem = this.closest('.alert-item');
+                    const studentName = alertItem.querySelector('h4').textContent.split(' - ')[0];
+                    const action = this.textContent.trim();
+                    showNotification(`${action} for ${studentName}`, 'info');
+                });
+            });
+        }
+
+        function loadStudentProgress(studentId) {
+            const student = progressData[studentId];
+            if (!student) return;
+
+            const container = document.getElementById('studentProgressDetail');
+            container.innerHTML = `
+                <div class="student-progress-header">
+                    <div class="student-info">
+                        <div class="student-avatar bg-primary">${student.name.split(' ').map(n => n[0]).join('')}</div>
+                        <div>
+                            <h3>${student.name}</h3>
+                            <p>Overall Progress: <strong>${student.overallProgress}%</strong></p>
+                        </div>
+                    </div>
+                    <div class="progress-badge">
+                        <div class="progress-circle">
+                            <div class="circle-value">${student.overallProgress}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-sections">
+                    <!-- Subject Progress -->
+                    <div class="progress-section">
+                        <h4>Subject Performance</h4>
+                        <div class="subject-performance">
+                            ${Object.entries(student.subjects).map(([subject, data]) => `
+                                <div class="subject-card">
+                                    <div class="subject-header">
+                                        <h5>${subject.charAt(0).toUpperCase() + subject.slice(1)}</h5>
+                                        <span class="trend ${data.trend}">
+                                            <i class="fas fa-arrow-${data.trend}"></i>
+                                        </span>
+                                    </div>
+                                    <div class="subject-stats">
+                                        <div class="stat">
+                                            <label>Progress</label>
+                                            <span>${data.progress}%</span>
+                                        </div>
+                                        <div class="stat">
+                                            <label>Assignments</label>
+                                            <span>${data.assignments}</span>
+                                        </div>
+                                        <div class="stat">
+                                            <label>Average</label>
+                                            <span>${data.average}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${data.progress}%"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Goals -->
+                    <div class="progress-section">
+                        <h4>Learning Goals</h4>
+                        <div class="goals-list">
+                            ${student.goals.map(goal => `
+                                <div class="goal-item">
+                                    <div class="goal-info">
+                                        <h5>${goal.title}</h5>
+                                        <span>${goal.progress}% Complete</span>
+                                    </div>
+                                    <div class="goal-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: ${goal.progress}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Milestones -->
+                    <div class="progress-section">
+                        <h4>Recent Milestones</h4>
+                        <div class="milestones-timeline">
+                            ${student.milestones.map(milestone => `
+                                <div class="timeline-item">
+                                    <div class="timeline-marker ${milestone.type}"></div>
+                                    <div class="timeline-content">
+                                        <h5>${milestone.title}</h5>
+                                        <span>${new Date(milestone.date).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Animate the progress bars
+            setTimeout(() => {
+                animateStudentProgressBars();
+            }, 100);
+        }
+
+        function showNoStudentSelected() {
+            const container = document.getElementById('studentProgressDetail');
+            container.innerHTML = `
+                <div class="no-student-selected">
+                    <i class="fas fa-user-graduate"></i>
+                    <h4>Select a student to view detailed progress</h4>
+                    <p>Choose a student from the dropdown above to see their learning journey</p>
+                </div>
+            `;
+        }
+
+        function updateProgressCharts(timeRange) {
+            showNotification(`Updating charts for ${timeRange} timeframe`, 'info');
+            // In a real app, you would fetch new data based on the time range
+        }
+
+        function animateProgressBars() {
+            const bars = document.querySelectorAll('.bar-fill');
+            bars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease-in-out';
+                    bar.style.width = width;
+                }, 100);
+            });
+        }
+
+        function animateStudentProgressBars() {
+            const bars = document.querySelectorAll('.student-progress-detail .progress-fill');
+            bars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease-in-out';
+                    bar.style.width = width;
+                }, 200);
+            });
+        }
+
+        function updateProgressStats() {
+            const totalStudents = Object.keys(progressData).length;
+            const avgProgress = Math.round(Object.values(progressData).reduce((sum, student) =>
+                sum + student.overallProgress, 0) / totalStudents);
+
+            document.getElementById('progressStats').textContent =
+                `${totalStudents} Students • ${avgProgress}% Avg. Progress`;
+        }
+
+        // Add CSS for progress tracking
+        const style = document.createElement('style');
+        style.textContent = `
+            .progress-controls {
+                display: flex;
+                gap: 1rem;
+            }
+
+            .progress-charts {
+                margin-top: 1.5rem;
+            }
+
+            .chart-container {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1.5rem;
+            }
+
+            .chart-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .chart-header h4 {
+                margin: 0;
+                color: var(--text-primary);
+            }
+
+            .subject-bars {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .subject-bar {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .subject-label {
+                min-width: 120px;
+                font-weight: 600;
+                color: var(--text-secondary);
+            }
+
+            .bar-container {
+                flex: 1;
+                height: 20px;
+                background: var(--background);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .bar-fill {
+                height: 100%;
+                background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+                border-radius: 10px;
+                transition: width 1s ease-in-out;
+            }
+
+            .subject-value {
+                min-width: 40px;
+                font-weight: 600;
+                color: var(--text-primary);
+                text-align: right;
+            }
+
+            .student-progress-detail {
+                min-height: 400px;
+            }
+
+            .no-student-selected {
+                text-align: center;
+                padding: 3rem;
+                color: var(--text-muted);
+            }
+
+            .no-student-selected i {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                color: var(--border);
+            }
+
+            .no-student-selected h4 {
+                margin: 0 0 0.5rem 0;
+                color: var(--text-secondary);
+            }
+
+            .student-progress-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+                padding-bottom: 1.5rem;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .student-info {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .student-avatar {
+                width: 4rem;
+                height: 4rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 1.25rem;
+            }
+
+            .student-info h3 {
+                margin: 0 0 0.25rem 0;
+            }
+
+            .student-info p {
+                margin: 0;
+                color: var(--text-muted);
+            }
+
+            .progress-circle {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: conic-gradient(var(--primary) 0% 92%, var(--background) 92% 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+
+            .circle-value {
+                background: var(--surface);
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 1.125rem;
+                color: var(--primary);
+            }
+
+            .progress-sections {
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .progress-section h4 {
+                margin: 0 0 1rem 0;
+                color: var(--text-primary);
+                font-size: 1.125rem;
+            }
+
+            .subject-performance {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .subject-card {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1.5rem;
+                background: var(--surface);
+            }
+
+            .subject-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }
+
+            .subject-header h5 {
+                margin: 0;
+                color: var(--text-primary);
+            }
+
+            .trend {
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius);
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .trend.up {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .trend.down {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .trend.stable {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .subject-stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .stat {
+                text-align: center;
+            }
+
+            .stat label {
+                display: block;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                margin-bottom: 0.25rem;
+            }
+
+            .stat span {
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .goals-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .goal-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .goal-info {
+                flex: 1;
+            }
+
+            .goal-info h5 {
+                margin: 0 0 0.25rem 0;
+                color: var(--text-primary);
+            }
+
+            .goal-info span {
+                font-size: 0.875rem;
+                color: var(--text-muted);
+            }
+
+            .goal-progress {
+                width: 150px;
+            }
+
+            .milestones-timeline {
+                position: relative;
+                padding-left: 2rem;
+            }
+
+            .milestones-timeline::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: var(--border);
+            }
+
+            .timeline-item {
+                position: relative;
+                margin-bottom: 1.5rem;
+            }
+
+            .timeline-marker {
+                position: absolute;
+                left: -2rem;
+                top: 0.25rem;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border: 2px solid var(--surface);
+            }
+
+            .timeline-marker.achievement {
+                background: var(--success);
+            }
+
+            .timeline-marker.completion {
+                background: var(--primary);
+            }
+
+            .timeline-content {
+                background: var(--surface);
+                padding: 1rem;
+                border-radius: var(--radius);
+                border: 1px solid var(--border);
+            }
+
+            .timeline-content h5 {
+                margin: 0 0 0.25rem 0;
+                color: var(--text-primary);
+            }
+
+            .timeline-content span {
+                font-size: 0.875rem;
+                color: var(--text-muted);
+            }
+
+            .alerts-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .alert-item {
+                display: flex;
+                gap: 1rem;
+                padding: 1rem;
+                border-radius: var(--radius);
+                border-left: 4px solid;
+            }
+
+            .alert-warning {
+                border-left-color: var(--warning);
+                background: #fef3c7;
+            }
+
+            .alert-info {
+                border-left-color: var(--info);
+                background: #dbeafe;
+            }
+
+            .alert-success {
+                border-left-color: var(--success);
+                background: #dcfce7;
+            }
+
+            .alert-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+
+            .alert-warning .alert-icon { background: var(--warning); }
+            .alert-info .alert-icon { background: var(--info); }
+            .alert-success .alert-icon { background: var(--success); }
+
+            .alert-content {
+                flex: 1;
+            }
+
+            .alert-content h4 {
+                margin: 0 0 0.25rem 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .alert-content p {
+                margin: 0 0 0.75rem 0;
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+            }
+
+            .alert-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .milestones-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .milestone-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .milestone-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+
+            .milestone-content {
+                flex: 1;
+            }
+
+            .milestone-content h4 {
+                margin: 0 0 0.25rem 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .milestone-content p {
+                margin: 0 0 0.25rem 0;
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+            }
+
+            .milestone-time {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

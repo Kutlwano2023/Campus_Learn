@@ -1,0 +1,881 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Tutor Analytics";
+    Layout = "_Layout";
+
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "Tutor";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Tutor Analytics</h1>
+                <p class="dashboard-subtitle">Comprehensive insights into your teaching performance</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    <span id="analyticsStats">Loading analytics...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Key Metrics & Charts -->
+            <div class="main-column">
+                <!-- Performance Overview -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Performance Overview</h2>
+                            <p class="section-description">Key teaching metrics and trends</p>
+                        </div>
+                        <div class="analytics-controls">
+                            <select class="form-select" id="timePeriod">
+                                <option value="week">Last 7 Days</option>
+                                <option value="month" selected>Last 30 Days</option>
+                                <option value="quarter">Last 90 Days</option>
+                                <option value="year">Last 12 Months</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card primary">
+                            <div class="metric-icon">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value">24</div>
+                                <div class="metric-label">Hours Taught</div>
+                                <div class="metric-trend positive">+12% from last period</div>
+                            </div>
+                        </div>
+                        <div class="metric-card success">
+                            <div class="metric-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value">4.8</div>
+                                <div class="metric-label">Average Rating</div>
+                                <div class="metric-trend positive">+0.2 points</div>
+                            </div>
+                        </div>
+                        <div class="metric-card info">
+                            <div class="metric-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value">15</div>
+                                <div class="metric-label">Active Students</div>
+                                <div class="metric-trend positive">+3 new students</div>
+                            </div>
+                        </div>
+                        <div class="metric-card warning">
+                            <div class="metric-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value">84%</div>
+                                <div class="metric-label">Avg. Progress</div>
+                                <div class="metric-trend positive">+5% improvement</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue & Earnings -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Revenue Analytics</h2>
+                            <p class="section-description">Earnings and financial performance</p>
+                        </div>
+                    </div>
+                    <div class="revenue-charts">
+                        <div class="revenue-metrics">
+                            <div class="revenue-metric">
+                                <div class="revenue-value">$2,850</div>
+                                <div class="revenue-label">Total Revenue</div>
+                                <div class="revenue-trend positive">+18% from last month</div>
+                            </div>
+                            <div class="revenue-metric">
+                                <div class="revenue-value">$95</div>
+                                <div class="revenue-label">Average Session Rate</div>
+                                <div class="revenue-trend positive">+$5 increase</div>
+                            </div>
+                            <div class="revenue-metric">
+                                <div class="revenue-value">30</div>
+                                <div class="revenue-label">Sessions Completed</div>
+                                <div class="revenue-trend positive">+4 sessions</div>
+                            </div>
+                        </div>
+                        <div class="revenue-breakdown">
+                            <h4>Revenue by Subject</h4>
+                            <div class="breakdown-bars">
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-label">Mathematics</div>
+                                    <div class="breakdown-container">
+                                        <div class="breakdown-fill" style="width: 45%" data-value="$1,282"></div>
+                                    </div>
+                                    <div class="breakdown-value">45%</div>
+                                </div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-label">Science</div>
+                                    <div class="breakdown-container">
+                                        <div class="breakdown-fill" style="width: 30%" data-value="$855"></div>
+                                    </div>
+                                    <div class="breakdown-value">30%</div>
+                                </div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-label">Programming</div>
+                                    <div class="breakdown-container">
+                                        <div class="breakdown-fill" style="width: 15%" data-value="$427"></div>
+                                    </div>
+                                    <div class="breakdown-value">15%</div>
+                                </div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-label">English</div>
+                                    <div class="breakdown-container">
+                                        <div class="breakdown-fill" style="width: 10%" data-value="$285"></div>
+                                    </div>
+                                    <div class="breakdown-value">10%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Engagement -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Student Engagement</h2>
+                            <p class="section-description">Interaction and participation metrics</p>
+                        </div>
+                    </div>
+                    <div class="engagement-stats">
+                        <div class="engagement-metric">
+                            <div class="engagement-value">92%</div>
+                            <div class="engagement-label">Assignment Completion</div>
+                            <div class="engagement-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 92%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="engagement-metric">
+                            <div class="engagement-value">88%</div>
+                            <div class="engagement-label">Session Attendance</div>
+                            <div class="engagement-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 88%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="engagement-metric">
+                            <div class="engagement-value">76%</div>
+                            <div class="engagement-label">Resource Utilization</div>
+                            <div class="engagement-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 76%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="engagement-metric">
+                            <div class="engagement-value">68%</div>
+                            <div class="engagement-label">Active Participation</div>
+                            <div class="engagement-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 68%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Insights & Recommendations -->
+            <div class="sidebar-column">
+                <!-- Performance Insights -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Performance Insights</h2>
+                        <p class="section-description">AI-powered recommendations</p>
+                    </div>
+                    <div class="insights-list">
+                        <div class="insight-item positive">
+                            <div class="insight-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Strong Mathematics Performance</h4>
+                                <p>Your students show 25% better results in math compared to other subjects.</p>
+                                <div class="insight-action">
+                                    <button class="btn btn-outline btn-sm">Leverage Strength</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="insight-item warning">
+                            <div class="insight-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Evening Session Opportunity</h4>
+                                <p>75% of your students prefer evening sessions. Consider adding more availability.</p>
+                                <div class="insight-action">
+                                    <button class="btn btn-primary btn-sm">Adjust Schedule</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="insight-item info">
+                            <div class="insight-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Resource Engagement Low</h4>
+                                <p>Only 45% of students are using your uploaded resources regularly.</p>
+                                <div class="insight-action">
+                                    <button class="btn btn-outline btn-sm">Improve Promotion</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject Performance -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Subject Performance</h2>
+                        <p class="section-description">Student results by subject</p>
+                    </div>
+                    <div class="subject-performance-chart">
+                        <div class="performance-item">
+                            <div class="subject-name">Mathematics</div>
+                            <div class="performance-bar">
+                                <div class="performance-fill" style="width: 87%"></div>
+                            </div>
+                            <div class="performance-value">87%</div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="subject-name">Science</div>
+                            <div class="performance-bar">
+                                <div class="performance-fill" style="width: 82%"></div>
+                            </div>
+                            <div class="performance-value">82%</div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="subject-name">Programming</div>
+                            <div class="performance-bar">
+                                <div class="performance-fill" style="width: 78%"></div>
+                            </div>
+                            <div class="performance-value">78%</div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="subject-name">English</div>
+                            <div class="performance-bar">
+                                <div class="performance-fill" style="width: 75%"></div>
+                            </div>
+                            <div class="performance-value">75%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Analytics -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Quick Analytics</h2>
+                        <p class="section-description">Generate instant reports</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="action-item" id="studentProgressReport">
+                            <div class="action-icon bg-primary">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Progress Report</h4>
+                                <p>Student performance overview</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="revenueReport">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Revenue Report</h4>
+                                <p>Earnings and financials</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="engagementReport">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Engagement Report</h4>
+                                <p>Student participation metrics</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="exportAnalytics">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Export Data</h4>
+                                <p>Download analytics data</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Achievement Badges -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Achievements</h2>
+                        <p class="section-description">Your teaching milestones</p>
+                    </div>
+                    <div class="badges-grid">
+                        <div class="badge-item earned">
+                            <div class="badge-icon gold">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="badge-content">
+                                <h4>Top Rated Tutor</h4>
+                                <p>Maintained 4.8+ rating for 3 months</p>
+                            </div>
+                        </div>
+                        <div class="badge-item earned">
+                            <div class="badge-icon silver">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="badge-content">
+                                <h4>Student Champion</h4>
+                                <p>Helped 10+ students achieve goals</p>
+                            </div>
+                        </div>
+                        <div class="badge-item locked">
+                            <div class="badge-icon bronze">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div class="badge-content">
+                                <h4>Rising Star</h4>
+                                <p>Complete 100 teaching hours</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTutorAnalytics();
+        });
+
+        function initializeTutorAnalytics() {
+            setupEventListeners();
+            updateAnalyticsStats();
+            animateCharts();
+        }
+
+        function setupEventListeners() {
+            // Time period filter
+            document.getElementById('timePeriod').addEventListener('change', function() {
+                updateAnalyticsData(this.value);
+            });
+
+            // Quick actions
+            document.getElementById('studentProgressReport').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Generating student progress report...', 'info');
+            });
+
+            document.getElementById('revenueReport').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Generating revenue report...', 'info');
+            });
+
+            document.getElementById('engagementReport').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Generating engagement report...', 'info');
+            });
+
+            document.getElementById('exportAnalytics').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Exporting analytics data...', 'info');
+            });
+
+            // Insight actions
+            document.querySelectorAll('.insight-action .btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const insight = this.closest('.insight-item');
+                    const title = insight.querySelector('h4').textContent;
+                    showNotification(`Action taken for: ${title}`, 'success');
+                });
+            });
+        }
+
+        function updateAnalyticsData(timePeriod) {
+            showNotification(`Loading analytics for ${timePeriod} period`, 'info');
+            // In a real app, you would fetch new data based on the time period
+            // For now, we'll just animate the charts again
+            animateCharts();
+        }
+
+        function animateCharts() {
+            // Animate metric cards
+            const metricCards = document.querySelectorAll('.metric-card');
+            metricCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            });
+
+            // Animate progress bars
+            const progressBars = document.querySelectorAll('.progress-fill, .breakdown-fill, .performance-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease-in-out';
+                    bar.style.width = width;
+                }, 500);
+            });
+
+            // Animate engagement metrics
+            const engagementMetrics = document.querySelectorAll('.engagement-metric');
+            engagementMetrics.forEach((metric, index) => {
+                metric.style.opacity = '0';
+                metric.style.transform = 'translateX(-20px)';
+
+                setTimeout(() => {
+                    metric.style.transition = 'all 0.5s ease';
+                    metric.style.opacity = '1';
+                    metric.style.transform = 'translateX(0)';
+                }, 300 + (index * 100));
+            });
+        }
+
+        function updateAnalyticsStats() {
+            const totalHours = 24;
+            const totalStudents = 15;
+            const avgRating = 4.8;
+
+            document.getElementById('analyticsStats').textContent =
+                `${totalHours} Hours • ${totalStudents} Students • ${avgRating} Rating`;
+        }
+
+        // Add CSS for tutor analytics
+        const style = document.createElement('style');
+        style.textContent = `
+            .analytics-controls {
+                display: flex;
+                gap: 1rem;
+            }
+
+            .metrics-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin-top: 1.5rem;
+            }
+
+            .metric-card {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                padding: 2rem;
+                border-radius: var(--radius);
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .metric-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            }
+
+            .metric-card.primary {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            }
+
+            .metric-card.success {
+                background: linear-gradient(135deg, var(--success) 0%, #0ca678 100%);
+            }
+
+            .metric-card.info {
+                background: linear-gradient(135deg, var(--info) 0%, #1c7ed6 100%);
+            }
+
+            .metric-card.warning {
+                background: linear-gradient(135deg, var(--warning) 0%, #f59f00 100%);
+            }
+
+            .metric-icon {
+                width: 4rem;
+                height: 4rem;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                flex-shrink: 0;
+            }
+
+            .metric-content {
+                flex: 1;
+            }
+
+            .metric-value {
+                font-size: 2.5rem;
+                font-weight: 700;
+                line-height: 1;
+                margin-bottom: 0.25rem;
+            }
+
+            .metric-label {
+                font-size: 0.875rem;
+                opacity: 0.9;
+                margin-bottom: 0.5rem;
+            }
+
+            .metric-trend {
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .metric-trend.positive {
+                color: rgba(255, 255, 255, 0.9);
+            }
+
+            .revenue-charts {
+                margin-top: 1.5rem;
+            }
+
+            .revenue-metrics {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .revenue-metric {
+                text-align: center;
+                padding: 1.5rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .revenue-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }
+
+            .revenue-label {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+                margin-bottom: 0.5rem;
+            }
+
+            .revenue-trend {
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .revenue-trend.positive {
+                color: var(--success);
+            }
+
+            .revenue-breakdown {
+                margin-top: 2rem;
+            }
+
+            .revenue-breakdown h4 {
+                margin: 0 0 1.5rem 0;
+                color: var(--text-primary);
+            }
+
+            .breakdown-bars {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .breakdown-bar {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .breakdown-label {
+                min-width: 120px;
+                font-weight: 600;
+                color: var(--text-secondary);
+            }
+
+            .breakdown-container {
+                flex: 1;
+                height: 20px;
+                background: var(--background);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .breakdown-fill {
+                height: 100%;
+                border-radius: 10px;
+                transition: width 1s ease-in-out;
+            }
+
+            .breakdown-bar:nth-child(1) .breakdown-fill { background: #3b82f6; }
+            .breakdown-bar:nth-child(2) .breakdown-fill { background: #10b981; }
+            .breakdown-bar:nth-child(3) .breakdown-fill { background: #f59e0b; }
+            .breakdown-bar:nth-child(4) .breakdown-fill { background: #ef4444; }
+
+            .breakdown-value {
+                min-width: 40px;
+                font-weight: 600;
+                color: var(--text-primary);
+                text-align: right;
+            }
+
+            .engagement-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+                margin-top: 1.5rem;
+            }
+
+            .engagement-metric {
+                text-align: center;
+                padding: 1.5rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .engagement-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 1rem;
+            }
+
+            .engagement-label {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+                margin-bottom: 1rem;
+            }
+
+            .engagement-progress {
+                margin-top: 1rem;
+            }
+
+            .insights-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .insight-item {
+                display: flex;
+                gap: 1rem;
+                padding: 1.5rem;
+                border-radius: var(--radius);
+                border-left: 4px solid;
+            }
+
+            .insight-item.positive {
+                border-left-color: var(--success);
+                background: #dcfce7;
+            }
+
+            .insight-item.warning {
+                border-left-color: var(--warning);
+                background: #fef3c7;
+            }
+
+            .insight-item.info {
+                border-left-color: var(--info);
+                background: #dbeafe;
+            }
+
+            .insight-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+
+            .insight-item.positive .insight-icon { background: var(--success); }
+            .insight-item.warning .insight-icon { background: var(--warning); }
+            .insight-item.info .insight-icon { background: var(--info); }
+
+            .insight-content {
+                flex: 1;
+            }
+
+            .insight-content h4 {
+                margin: 0 0 0.5rem 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .insight-content p {
+                margin: 0 0 1rem 0;
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+                line-height: 1.5;
+            }
+
+            .insight-action {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .subject-performance-chart {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+
+            .performance-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .subject-name {
+                min-width: 100px;
+                font-weight: 600;
+                color: var(--text-secondary);
+            }
+
+            .performance-bar {
+                flex: 1;
+                height: 8px;
+                background: var(--background);
+                border-radius: 4px;
+                overflow: hidden;
+            }
+
+            .performance-fill {
+                height: 100%;
+                background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+                border-radius: 4px;
+                transition: width 1s ease-in-out;
+            }
+
+            .performance-value {
+                min-width: 40px;
+                font-weight: 600;
+                color: var(--text-primary);
+                text-align: right;
+            }
+
+            .badges-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+
+            .badge-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .badge-item.earned {
+                background: var(--surface);
+            }
+
+            .badge-item.locked {
+                background: #f8fafc;
+                opacity: 0.6;
+            }
+
+            .badge-icon {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+                flex-shrink: 0;
+            }
+
+            .badge-icon.gold {
+                background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                color: white;
+            }
+
+            .badge-icon.silver {
+                background: linear-gradient(135deg, #9ca3af, #6b7280);
+                color: white;
+            }
+
+            .badge-icon.bronze {
+                background: linear-gradient(135deg, #f97316, #ea580c);
+                color: white;
+            }
+
+            .badge-content {
+                flex: 1;
+            }
+
+            .badge-content h4 {
+                margin: 0 0 0.25rem 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .badge-content p {
+                margin: 0;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}
