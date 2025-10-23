@@ -1,0 +1,1137 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Resource Management";
+    Layout = "_Layout";
+
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "Tutor";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Resource Management</h1>
+                <p class="dashboard-subtitle">Organize and share teaching materials with your students</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-folder-open me-2"></i>
+                    <span id="resourceStats">Loading resources...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Resource Library & Upload -->
+            <div class="main-column">
+                <!-- Resource Upload -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Upload Resources</h2>
+                            <p class="section-description">Add new materials to your library</p>
+                        </div>
+                    </div>
+                    <div class="upload-interface">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Drag & Drop Files Here</h3>
+                            <p>or click to browse your computer</p>
+                            <input type="file" id="fileUpload" multiple style="display: none;">
+                            <button class="btn btn-primary" id="browseFilesBtn">
+                                <i class="fas fa-folder-open me-2"></i>Browse Files
+                            </button>
+                        </div>
+                        <div class="upload-form" id="uploadForm" style="display: none;">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Resource Title</label>
+                                    <input type="text" class="form-control" id="resourceTitle" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Subject</label>
+                                    <select class="form-select" id="resourceSubject" required>
+                                        <option value="">Select Subject</option>
+                                        <option value="math">Mathematics</option>
+                                        <option value="science">Science</option>
+                                        <option value="english">English</option>
+                                        <option value="programming">Programming</option>
+                                        <option value="general">General</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Resource Type</label>
+                                    <select class="form-select" id="resourceType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="document">Document</option>
+                                        <option value="presentation">Presentation</option>
+                                        <option value="video">Video</option>
+                                        <option value="worksheet">Worksheet</option>
+                                        <option value="quiz">Quiz</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Grade Level</label>
+                                    <input type="text" class="form-control" id="resourceGrade" placeholder="e.g., 9-12">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" id="resourceDescription" rows="3" placeholder="Describe this resource..."></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">Tags</label>
+                                    <input type="text" class="form-control" id="resourceTags" placeholder="Add tags separated by commas">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">Share With</label>
+                                    <div class="share-options">
+                                        <label class="option-item">
+                                            <input type="radio" name="shareScope" value="all" checked> All Students
+                                        </label>
+                                        <label class="option-item">
+                                            <input type="radio" name="shareScope" value="specific"> Specific Students
+                                        </label>
+                                        <label class="option-item">
+                                            <input type="radio" name="shareScope" value="private"> Private (Only Me)
+                                        </label>
+                                    </div>
+                                    <div class="specific-students" id="specificStudentsContainer" style="display: none;">
+                                        <div class="student-checkboxes" id="resourceStudentCheckboxes">
+                                            <!-- Student checkboxes will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="upload-preview" id="uploadPreview">
+                                <!-- File preview will appear here -->
+                            </div>
+                            <div class="upload-actions">
+                                <button type="button" class="btn btn-outline" id="cancelUploadBtn">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="saveResourceBtn">
+                                    <i class="fas fa-save me-2"></i>Save Resource
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resource Library -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Resource Library</h2>
+                            <p class="section-description">Your teaching materials collection</p>
+                        </div>
+                        <div class="library-controls">
+                            <div class="search-box">
+                                <input type="text" id="resourceSearch" placeholder="Search resources..." class="form-control">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <select class="form-select" id="resourceFilter">
+                                <option value="all">All Types</option>
+                                <option value="document">Documents</option>
+                                <option value="presentation">Presentations</option>
+                                <option value="video">Videos</option>
+                                <option value="worksheet">Worksheets</option>
+                                <option value="quiz">Quizzes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="resources-grid" id="resourcesGrid">
+                        <!-- Resources will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Statistics & Quick Actions -->
+            <div class="sidebar-column">
+                <!-- Resource Statistics -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Resource Statistics</h2>
+                        <p class="section-description">Your library overview</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-file"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">47</div>
+                                <div class="stat-label">Total Resources</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">Total Downloads</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">5</div>
+                                <div class="stat-label">Subjects</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">84%</div>
+                                <div class="stat-label">Usage Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                        <p class="section-description">Manage your resources</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="action-item" id="createFolder">
+                            <div class="action-icon bg-primary">
+                                <i class="fas fa-folder-plus"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Create Folder</h4>
+                                <p>Organize resources</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="importResources">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Bulk Import</h4>
+                                <p>Import multiple files</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="resourceTemplates">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Templates</h4>
+                                <p>Use resource templates</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="shareLibrary">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-share-alt"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Share Library</h4>
+                                <p>Share with other tutors</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Most Popular Resources -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Most Popular</h2>
+                        <p class="section-description">Frequently accessed resources</p>
+                    </div>
+                    <div class="popular-resources">
+                        <div class="popular-item">
+                            <div class="popular-icon bg-primary">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4>Algebra Basics</h4>
+                                <p>32 downloads</p>
+                            </div>
+                            <div class="popular-badge">
+                                <i class="fas fa-download"></i>
+                            </div>
+                        </div>
+                        <div class="popular-item">
+                            <div class="popular-icon bg-success">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4>Physics Demo</h4>
+                                <p>28 views</p>
+                            </div>
+                            <div class="popular-badge">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="popular-item">
+                            <div class="popular-icon bg-info">
+                                <i class="fas fa-file-word"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4>Essay Guide</h4>
+                                <p>25 downloads</p>
+                            </div>
+                            <div class="popular-badge">
+                                <i class="fas fa-download"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <p class="section-description">Latest resource updates</p>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-success">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>New resource uploaded</h4>
+                                <p>Chemistry Lab Worksheet</p>
+                                <p class="activity-time">2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-primary">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Resource downloaded</h4>
+                                <p>Sarah Johnson - Algebra Quiz</p>
+                                <p class="activity-time">Yesterday</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-info">
+                                <i class="fas fa-share"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Resource shared</h4>
+                                <p>Physics Study Group</p>
+                                <p class="activity-time">2 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Resource Details Modal -->
+<div class="modal fade" id="resourceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resourceModalTitle">Resource Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resourceModalBody">
+                <!-- Resource details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Sample resource data
+        const resources = [
+            {
+                id: 1,
+                title: "Algebra Basics Worksheet",
+                type: "worksheet",
+                subject: "Mathematics",
+                fileType: "pdf",
+                size: "2.4 MB",
+                uploadDate: new Date(2024, 0, 15),
+                downloads: 32,
+                description: "Basic algebra problems for beginners",
+                tags: ["algebra", "beginner", "worksheet"],
+                sharedWith: "all"
+            },
+            {
+                id: 2,
+                title: "Physics Mechanics Presentation",
+                type: "presentation",
+                subject: "Science",
+                fileType: "pptx",
+                size: "15.7 MB",
+                uploadDate: new Date(2024, 0, 10),
+                downloads: 28,
+                description: "Comprehensive overview of mechanics",
+                tags: ["physics", "mechanics", "presentation"],
+                sharedWith: "all"
+            },
+            {
+                id: 3,
+                title: "Essay Writing Guide",
+                type: "document",
+                subject: "English",
+                fileType: "docx",
+                size: "1.2 MB",
+                uploadDate: new Date(2024, 0, 8),
+                downloads: 25,
+                description: "Step-by-step essay writing guide",
+                tags: ["essay", "writing", "guide"],
+                sharedWith: "specific"
+            },
+            {
+                id: 4,
+                title: "Python Programming Exercises",
+                type: "worksheet",
+                subject: "Programming",
+                fileType: "pdf",
+                size: "3.1 MB",
+                uploadDate: new Date(2024, 0, 5),
+                downloads: 18,
+                description: "Practice exercises for Python beginners",
+                tags: ["python", "programming", "exercises"],
+                sharedWith: "all"
+            }
+        ];
+
+        const students = [
+            { id: 1, name: "Sarah Johnson", subject: "Mathematics" },
+            { id: 2, name: "Michael Brown", subject: "Science" },
+            { id: 3, name: "David Lee", subject: "Programming" },
+            { id: 4, name: "Emily Chen", subject: "Mathematics" },
+            { id: 5, name: "Alex Rodriguez", subject: "English" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeResourceManagement();
+        });
+
+        function initializeResourceManagement() {
+            loadResourceLibrary();
+            setupEventListeners();
+            populateStudentCheckboxes();
+            updateResourceStats();
+        }
+
+        function loadResourceLibrary() {
+            const container = document.getElementById('resourcesGrid');
+            container.innerHTML = '';
+
+            resources.forEach(resource => {
+                const resourceCard = createResourceCard(resource);
+                container.appendChild(resourceCard);
+            });
+        }
+
+        function createResourceCard(resource) {
+            const card = document.createElement('div');
+            card.className = 'resource-card';
+            card.innerHTML = `
+                <div class="resource-header">
+                    <div class="resource-icon ${getFileTypeClass(resource.fileType)}">
+                        <i class="${getFileIcon(resource.fileType)}"></i>
+                    </div>
+                    <div class="resource-actions">
+                        <button class="btn-action" onclick="downloadResource(${resource.id})" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="btn-action" onclick="shareResource(${resource.id})" title="Share">
+                            <i class="fas fa-share"></i>
+                        </button>
+                        <button class="btn-action" onclick="viewResource(${resource.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="resource-content">
+                    <h4 class="resource-title">${resource.title}</h4>
+                    <div class="resource-meta">
+                        <span class="resource-type">${resource.type}</span>
+                        <span class="resource-subject">${resource.subject}</span>
+                    </div>
+                    <p class="resource-description">${resource.description}</p>
+                    <div class="resource-tags">
+                        ${resource.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="resource-footer">
+                    <div class="resource-stats">
+                        <span class="stat">
+                            <i class="fas fa-download"></i> ${resource.downloads}
+                        </span>
+                        <span class="stat">
+                            <i class="fas fa-calendar"></i> ${formatDate(resource.uploadDate)}
+                        </span>
+                    </div>
+                    <div class="resource-size">${resource.size}</div>
+                </div>
+            `;
+            return card;
+        }
+
+        function setupEventListeners() {
+            // File upload
+            document.getElementById('browseFilesBtn').addEventListener('click', function() {
+                document.getElementById('fileUpload').click();
+            });
+
+            document.getElementById('fileUpload').addEventListener('change', handleFileSelection);
+
+            document.getElementById('uploadArea').addEventListener('click', function() {
+                document.getElementById('fileUpload').click();
+            });
+
+            // Upload form
+            document.getElementById('cancelUploadBtn').addEventListener('click', resetUploadForm);
+            document.getElementById('saveResourceBtn').addEventListener('click', saveResource);
+
+            // Share options
+            document.querySelectorAll('input[name="shareScope"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('specificStudentsContainer').style.display =
+                        this.value === 'specific' ? 'block' : 'none';
+                });
+            });
+
+            // Search and filter
+            document.getElementById('resourceSearch').addEventListener('input', filterResources);
+            document.getElementById('resourceFilter').addEventListener('change', filterResources);
+
+            // Quick actions
+            document.getElementById('createFolder').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Creating new folder...', 'info');
+            });
+
+            document.getElementById('importResources').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening bulk import...', 'info');
+            });
+
+            document.getElementById('resourceTemplates').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Loading resource templates...', 'info');
+            });
+
+            document.getElementById('shareLibrary').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Sharing library with tutors...', 'info');
+            });
+        }
+
+        function populateStudentCheckboxes() {
+            const container = document.getElementById('resourceStudentCheckboxes');
+            container.innerHTML = '';
+
+            students.forEach(student => {
+                const checkbox = document.createElement('label');
+                checkbox.className = 'student-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" value="${student.id}" data-name="${student.name}">
+                    <span>${student.name} (${student.subject})</span>
+                `;
+                container.appendChild(checkbox);
+            });
+        }
+
+        function handleFileSelection(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            // Show upload form
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('uploadForm').style.display = 'block';
+
+            // Populate preview
+            const preview = document.getElementById('uploadPreview');
+            preview.innerHTML = '';
+
+            Array.from(files).forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-preview-item';
+                fileItem.innerHTML = `
+                    <div class="file-icon">
+                        <i class="${getFileIcon(file.name.split('.').pop())}"></i>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                    </div>
+                    <button type="button" class="btn-remove-file" onclick="removeFilePreview(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                preview.appendChild(fileItem);
+
+                // Auto-fill title from filename
+                if (files.length === 1) {
+                    const title = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    document.getElementById('resourceTitle').value = title;
+                }
+            });
+        }
+
+        function saveResource() {
+            const formData = {
+                title: document.getElementById('resourceTitle').value,
+                subject: document.getElementById('resourceSubject').value,
+                type: document.getElementById('resourceType').value,
+                grade: document.getElementById('resourceGrade').value,
+                description: document.getElementById('resourceDescription').value,
+                tags: document.getElementById('resourceTags').value.split(',').map(tag => tag.trim()),
+                shareScope: document.querySelector('input[name="shareScope"]:checked').value,
+                specificStudents: getSelectedStudents()
+            };
+
+            // Validate form
+            if (!formData.title || !formData.subject || !formData.type) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Create new resource
+            const files = document.getElementById('fileUpload').files;
+            if (files.length === 0) {
+                showNotification('Please select a file to upload', 'error');
+                return;
+            }
+
+            const file = files[0];
+            const newResource = {
+                id: resources.length + 1,
+                title: formData.title,
+                type: formData.type,
+                subject: formData.subject.charAt(0).toUpperCase() + formData.subject.slice(1),
+                fileType: file.name.split('.').pop(),
+                size: formatFileSize(file.size),
+                uploadDate: new Date(),
+                downloads: 0,
+                description: formData.description,
+                tags: formData.tags,
+                sharedWith: formData.shareScope
+            };
+
+            resources.unshift(newResource);
+            loadResourceLibrary();
+            updateResourceStats();
+            resetUploadForm();
+
+            showNotification(`Resource "${formData.title}" uploaded successfully!`, 'success');
+        }
+
+        function resetUploadForm() {
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('uploadForm').style.display = 'none';
+            document.getElementById('uploadForm').reset();
+            document.getElementById('uploadPreview').innerHTML = '';
+            document.getElementById('fileUpload').value = '';
+        }
+
+        function removeFilePreview(button) {
+            const fileItem = button.closest('.file-preview-item');
+            fileItem.remove();
+
+            // If no files left, reset form
+            if (document.getElementById('uploadPreview').children.length === 0) {
+                resetUploadForm();
+            }
+        }
+
+        function getSelectedStudents() {
+            const selected = [];
+            document.querySelectorAll('#resourceStudentCheckboxes input:checked').forEach(checkbox => {
+                selected.push({
+                    id: checkbox.value,
+                    name: checkbox.dataset.name
+                });
+            });
+            return selected;
+        }
+
+        function filterResources() {
+            const searchTerm = document.getElementById('resourceSearch').value.toLowerCase();
+            const typeFilter = document.getElementById('resourceFilter').value;
+
+            const filtered = resources.filter(resource => {
+                const matchesSearch = resource.title.toLowerCase().includes(searchTerm) ||
+                                    resource.description.toLowerCase().includes(searchTerm) ||
+                                    resource.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                const matchesType = typeFilter === 'all' || resource.type === typeFilter;
+
+                return matchesSearch && matchesType;
+            });
+
+            const container = document.getElementById('resourcesGrid');
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-resources">No resources match your search criteria</div>';
+            } else {
+                filtered.forEach(resource => {
+                    container.appendChild(createResourceCard(resource));
+                });
+            }
+        }
+
+        function viewResource(resourceId) {
+            const resource = resources.find(r => r.id === resourceId);
+            if (!resource) return;
+
+            document.getElementById('resourceModalTitle').textContent = resource.title;
+
+            const modalBody = document.getElementById('resourceModalBody');
+            modalBody.innerHTML = `
+                <div class="resource-detail-grid">
+                    <div class="detail-item">
+                        <label>Type:</label>
+                        <span>${resource.type}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Subject:</label>
+                        <span>${resource.subject}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>File Type:</label>
+                        <span>${resource.fileType.toUpperCase()}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Size:</label>
+                        <span>${resource.size}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Upload Date:</label>
+                        <span>${formatDate(resource.uploadDate)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Downloads:</label>
+                        <span>${resource.downloads}</span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Description:</label>
+                        <p>${resource.description}</p>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Tags:</label>
+                        <div class="tags-list">
+                            ${resource.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Shared With:</label>
+                        <span>${resource.sharedWith === 'all' ? 'All Students' :
+                               resource.sharedWith === 'specific' ? 'Specific Students' : 'Private'}</span>
+                    </div>
+                </div>
+                <div class="resource-actions-modal">
+                    <button class="btn btn-primary" onclick="downloadResource(${resource.id})">
+                        <i class="fas fa-download me-2"></i>Download
+                    </button>
+                    <button class="btn btn-outline" onclick="shareResource(${resource.id})">
+                        <i class="fas fa-share me-2"></i>Share
+                    </button>
+                    <button class="btn btn-outline" onclick="editResource(${resource.id})">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </button>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('resourceModal'));
+            modal.show();
+        }
+
+        function downloadResource(resourceId) {
+            const resource = resources.find(r => r.id === resourceId);
+            if (resource) {
+                resource.downloads++;
+                loadResourceLibrary();
+                showNotification(`Downloading "${resource.title}"`, 'info');
+            }
+        }
+
+        function shareResource(resourceId) {
+            showNotification('Opening share options...', 'info');
+        }
+
+        function editResource(resourceId) {
+            showNotification('Opening resource editor...', 'info');
+        }
+
+        // Utility functions
+        function getFileTypeClass(fileType) {
+            const types = {
+                'pdf': 'file-pdf',
+                'docx': 'file-word',
+                'pptx': 'file-powerpoint',
+                'mp4': 'file-video',
+                'jpg': 'file-image',
+                'png': 'file-image'
+            };
+            return types[fileType] || 'file-generic';
+        }
+
+        function getFileIcon(fileType) {
+            const icons = {
+                'pdf': 'fas fa-file-pdf',
+                'docx': 'fas fa-file-word',
+                'pptx': 'fas fa-file-powerpoint',
+                'mp4': 'fas fa-file-video',
+                'jpg': 'fas fa-file-image',
+                'png': 'fas fa-file-image'
+            };
+            return icons[fileType] || 'fas fa-file';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function updateResourceStats() {
+            const total = resources.length;
+            const totalDownloads = resources.reduce((sum, resource) => sum + resource.downloads, 0);
+            document.getElementById('resourceStats').textContent =
+                `${total} Resources • ${totalDownloads} Downloads`;
+        }
+
+        // Add CSS for resource management
+        const style = document.createElement('style');
+        style.textContent = `
+            .upload-interface {
+                margin-top: 1rem;
+            }
+
+            .upload-area {
+                border: 2px dashed var(--border);
+                border-radius: var(--radius);
+                padding: 3rem 2rem;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .upload-area:hover {
+                border-color: var(--primary);
+                background: #f8fafc;
+            }
+
+            .upload-icon {
+                font-size: 3rem;
+                color: var(--text-muted);
+                margin-bottom: 1rem;
+            }
+
+            .upload-area h3 {
+                margin: 0 0 0.5rem 0;
+                color: var(--text-primary);
+            }
+
+            .upload-area p {
+                margin: 0 0 1.5rem 0;
+                color: var(--text-muted);
+            }
+
+            .upload-form {
+                margin-top: 1rem;
+            }
+
+            .upload-preview {
+                margin: 1.5rem 0;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1rem;
+            }
+
+            .file-preview-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 0.75rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                margin-bottom: 0.5rem;
+            }
+
+            .file-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: var(--radius);
+                background: var(--background);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--primary);
+            }
+
+            .file-info {
+                flex: 1;
+            }
+
+            .file-name {
+                font-weight: 600;
+                margin-bottom: 0.25rem;
+            }
+
+            .file-size {
+                font-size: 0.875rem;
+                color: var(--text-muted);
+            }
+
+            .btn-remove-file {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                padding: 0.5rem;
+            }
+
+            .upload-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                border-top: 1px solid var(--border);
+                padding-top: 1.5rem;
+            }
+
+            .library-controls {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .resources-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .resource-card {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1.5rem;
+                background: var(--surface);
+                transition: all 0.2s ease;
+            }
+
+            .resource-card:hover {
+                border-color: var(--primary);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .resource-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+            }
+
+            .resource-icon {
+                width: 3rem;
+                height: 3rem;
+                border-radius: var(--radius);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                color: white;
+            }
+
+            .resource-icon.file-pdf { background: #ef4444; }
+            .resource-icon.file-word { background: #2563eb; }
+            .resource-icon.file-powerpoint { background: #f59e0b; }
+            .resource-icon.file-video { background: #8b5cf6; }
+            .resource-icon.file-image { background: #10b981; }
+            .resource-icon.file-generic { background: #64748b; }
+
+            .resource-actions {
+                display: flex;
+                gap: 0.25rem;
+            }
+
+            .btn-action {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                padding: 0.5rem;
+                border-radius: var(--radius);
+                transition: all 0.2s ease;
+            }
+
+            .btn-action:hover {
+                background: var(--background);
+                color: var(--primary);
+            }
+
+            .resource-title {
+                margin: 0 0 0.5rem 0;
+                font-size: 1rem;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+
+            .resource-meta {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .resource-type, .resource-subject {
+                background: var(--background);
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius);
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+            }
+
+            .resource-description {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+                line-height: 1.5;
+                margin-bottom: 1rem;
+            }
+
+            .resource-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.25rem;
+                margin-bottom: 1rem;
+            }
+
+            .resource-tags .tag {
+                background: #e0f2fe;
+                color: #0369a1;
+                padding: 0.25rem 0.5rem;
+                border-radius: 999px;
+                font-size: 0.75rem;
+            }
+
+            .resource-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-top: 1px solid var(--border);
+                padding-top: 1rem;
+            }
+
+            .resource-stats {
+                display: flex;
+                gap: 1rem;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .resource-size {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+
+            .popular-resources {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .popular-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .popular-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.25rem;
+            }
+
+            .popular-content {
+                flex: 1;
+            }
+
+            .popular-content h4 {
+                margin: 0 0 0.25rem 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .popular-content p {
+                margin: 0;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .popular-badge {
+                color: var(--text-muted);
+            }
+
+            .resource-detail-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .resource-actions-modal {
+                display: flex;
+                gap: 0.5rem;
+                justify-content: flex-end;
+                border-top: 1px solid var(--border);
+                padding-top: 1rem;
+            }
+
+            .no-resources {
+                text-align: center;
+                padding: 3rem;
+                color: var(--text-muted);
+                font-style: italic;
+                grid-column: 1 / -1;
+            }
+
+            .share-options {
+                display: flex;
+                gap: 2rem;
+                margin-bottom: 1rem;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

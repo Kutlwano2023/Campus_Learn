@@ -1,0 +1,749 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "My Students";
+    Layout = "_Layout";
+
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "Tutor";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">My Students</h1>
+                <p class="dashboard-subtitle">Manage and track your students' progress and performance</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-users me-2"></i>
+                    <span id="studentCount">Loading...</span> Active Students
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Student List -->
+            <div class="main-column">
+                <!-- Student Search and Filters -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Student Directory</h2>
+                            <p class="section-description">Search and manage your student roster</p>
+                        </div>
+                        <div class="search-box">
+                            <input type="text" id="studentSearch" placeholder="Search students..." class="form-control">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label>Filter by:</label>
+                            <select id="subjectFilter" class="form-select">
+                                <option value="">All Subjects</option>
+                                <option value="math">Mathematics</option>
+                                <option value="science">Science</option>
+                                <option value="english">English</option>
+                                <option value="programming">Programming</option>
+                            </select>
+                            <select id="performanceFilter" class="form-select">
+                                <option value="">All Performance</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="needs-improvement">Needs Improvement</option>
+                                <option value="at-risk">At Risk</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="students-list" id="studentsContainer">
+                        <!-- Students will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Student Performance Overview -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Performance Overview</h2>
+                            <p class="section-description">Average grades and progress across subjects</p>
+                        </div>
+                    </div>
+                    <div class="performance-grid">
+                        <div class="performance-card">
+                            <div class="performance-icon bg-success">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="performance-content">
+                                <div class="performance-value">87%</div>
+                                <div class="performance-label">Average Grade</div>
+                                <div class="performance-trend positive">+5% this month</div>
+                            </div>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-icon bg-primary">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="performance-content">
+                                <div class="performance-value">92%</div>
+                                <div class="performance-label">Assignment Completion</div>
+                                <div class="performance-trend positive">+3% this week</div>
+                            </div>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-icon bg-warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="performance-content">
+                                <div class="performance-value">78%</div>
+                                <div class="performance-label">Attendance Rate</div>
+                                <div class="performance-trend negative">-2% this month</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Quick Actions & Details -->
+            <div class="sidebar-column">
+                <!-- Quick Student Actions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                        <p class="section-description">Manage your students</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="action-item" id="addStudentBtn">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Add New Student</h4>
+                                <p>Enroll a new student</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="sendGroupMessage">
+                            <div class="action-icon bg-primary">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Group Message</h4>
+                                <p>Send message to all students</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="scheduleGroupSession">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Group Session</h4>
+                                <p>Schedule study group</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="generateReports">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Progress Reports</h4>
+                                <p>Generate student reports</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Student Activity</h2>
+                        <p class="section-description">Latest submissions and interactions</p>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-success">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Sarah Johnson submitted assignment</h4>
+                                <p class="activity-time">Algebra Quiz - 45 minutes ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-primary">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Michael Brown sent message</h4>
+                                <p class="activity-time">Question about homework - 2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-warning">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>David Lee missed session</h4>
+                                <p class="activity-time">Scheduled for today - 4 hours ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Statistics -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Student Distribution</h2>
+                        <p class="section-description">By subject and performance level</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">6</div>
+                                <div class="stat-label">Math Students</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">4</div>
+                                <div class="stat-label">Science Students</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Programming</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">English</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="studentName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="studentEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <select class="form-select" id="studentSubject" required>
+                            <option value="">Select Subject</option>
+                            <option value="math">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="english">English</option>
+                            <option value="programming">Programming</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Grade Level</label>
+                        <input type="text" class="form-control" id="studentGrade" placeholder="e.g., 10th Grade">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveStudentBtn">Add Student</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Sample student data
+        const students = [
+            {
+                id: 1,
+                name: "Sarah Johnson",
+                email: "sarah.j@student.edu",
+                subject: "Mathematics",
+                grade: "A-",
+                progress: 85,
+                avatar: "SJ",
+                status: "active",
+                lastActivity: "2 hours ago",
+                performance: "excellent"
+            },
+            {
+                id: 2,
+                name: "Michael Brown",
+                email: "michael.b@student.edu",
+                subject: "Science",
+                grade: "B+",
+                progress: 78,
+                avatar: "MB",
+                status: "active",
+                lastActivity: "1 day ago",
+                performance: "good"
+            },
+            {
+                id: 3,
+                name: "David Lee",
+                email: "david.l@student.edu",
+                subject: "Programming",
+                grade: "C+",
+                progress: 65,
+                avatar: "DL",
+                status: "needs-attention",
+                lastActivity: "3 days ago",
+                performance: "needs-improvement"
+            },
+            {
+                id: 4,
+                name: "Emily Chen",
+                email: "emily.c@student.edu",
+                subject: "Mathematics",
+                grade: "A",
+                progress: 92,
+                avatar: "EC",
+                status: "active",
+                lastActivity: "5 hours ago",
+                performance: "excellent"
+            },
+            {
+                id: 5,
+                name: "Alex Rodriguez",
+                email: "alex.r@student.edu",
+                subject: "English",
+                grade: "B",
+                progress: 72,
+                avatar: "AR",
+                status: "active",
+                lastActivity: "2 days ago",
+                performance: "good"
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStudentsPage();
+        });
+
+        function initializeStudentsPage() {
+            loadStudents();
+            setupEventListeners();
+            updateStudentCount();
+        }
+
+        function loadStudents() {
+            const container = document.getElementById('studentsContainer');
+            container.innerHTML = '';
+
+            students.forEach(student => {
+                const studentCard = createStudentCard(student);
+                container.appendChild(studentCard);
+            });
+        }
+
+        function createStudentCard(student) {
+            const card = document.createElement('div');
+            card.className = `student-card ${student.status === 'needs-attention' ? 'needs-attention' : ''}`;
+            card.innerHTML = `
+                <div class="student-avatar bg-${getPerformanceColor(student.performance)}">
+                    ${student.avatar}
+                </div>
+                <div class="student-info">
+                    <div class="student-header">
+                        <h4>${student.name}</h4>
+                        <span class="student-grade">${student.grade}</span>
+                    </div>
+                    <div class="student-details">
+                        <span class="student-subject">${student.subject}</span>
+                        <span class="student-email">${student.email}</span>
+                    </div>
+                    <div class="student-progress">
+                        <div class="progress-info">
+                            <span>Progress</span>
+                            <span>${student.progress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${student.progress}%"></div>
+                        </div>
+                    </div>
+                    <div class="student-meta">
+                        <span class="last-activity">Last active: ${student.lastActivity}</span>
+                    </div>
+                </div>
+                <div class="student-actions">
+                    <button class="btn btn-outline btn-sm message-btn" data-id="${student.id}">
+                        <i class="fas fa-envelope me-1"></i>Message
+                    </button>
+                    <button class="btn btn-primary btn-sm view-btn" data-id="${student.id}">
+                        <i class="fas fa-eye me-1"></i>View
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        function getPerformanceColor(performance) {
+            const colors = {
+                'excellent': 'success',
+                'good': 'primary',
+                'needs-improvement': 'warning',
+                'at-risk': 'error'
+            };
+            return colors[performance] || 'secondary';
+        }
+
+        function setupEventListeners() {
+            // Add Student Modal
+            document.getElementById('addStudentBtn').addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+                modal.show();
+            });
+
+            // Save Student
+            document.getElementById('saveStudentBtn').addEventListener('click', function() {
+                const form = document.getElementById('addStudentForm');
+                if (form.checkValidity()) {
+                    addNewStudent();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+                    modal.hide();
+                } else {
+                    form.reportValidity();
+                }
+            });
+
+            // Quick Actions
+            document.getElementById('sendGroupMessage').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening group message composer...', 'info');
+            });
+
+            document.getElementById('scheduleGroupSession').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Redirecting to session scheduler...', 'info');
+            });
+
+            document.getElementById('generateReports').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Generating student progress reports...', 'info');
+            });
+
+            // Search functionality
+            document.getElementById('studentSearch').addEventListener('input', function(e) {
+                filterStudents(e.target.value);
+            });
+
+            // Filter functionality
+            document.getElementById('subjectFilter').addEventListener('change', filterStudents);
+            document.getElementById('performanceFilter').addEventListener('change', filterStudents);
+        }
+
+        function addNewStudent() {
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('studentEmail').value;
+            const subject = document.getElementById('studentSubject').value;
+            const grade = document.getElementById('studentGrade').value;
+
+            const newStudent = {
+                id: students.length + 1,
+                name: name,
+                email: email,
+                subject: subject.charAt(0).toUpperCase() + subject.slice(1),
+                grade: 'N/A',
+                progress: 0,
+                avatar: name.split(' ').map(n => n[0]).join(''),
+                status: 'active',
+                lastActivity: 'Just added',
+                performance: 'good'
+            };
+
+            students.unshift(newStudent);
+            loadStudents();
+            updateStudentCount();
+            showNotification(`Successfully added ${name} to your students`, 'success');
+
+            // Reset form
+            document.getElementById('addStudentForm').reset();
+        }
+
+        function filterStudents() {
+            const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+            const subjectFilter = document.getElementById('subjectFilter').value;
+            const performanceFilter = document.getElementById('performanceFilter').value;
+
+            const filtered = students.filter(student => {
+                const matchesSearch = student.name.toLowerCase().includes(searchTerm) ||
+                                    student.email.toLowerCase().includes(searchTerm);
+                const matchesSubject = !subjectFilter || student.subject.toLowerCase() === subjectFilter;
+                const matchesPerformance = !performanceFilter || student.performance === performanceFilter;
+
+                return matchesSearch && matchesSubject && matchesPerformance;
+            });
+
+            const container = document.getElementById('studentsContainer');
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-results">No students match your search criteria</div>';
+            } else {
+                filtered.forEach(student => {
+                    container.appendChild(createStudentCard(student));
+                });
+            }
+        }
+
+        function updateStudentCount() {
+            document.getElementById('studentCount').textContent = students.length;
+        }
+
+        // Add CSS for student cards
+        const style = document.createElement('style');
+        style.textContent = `
+            .students-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .student-card {
+                display: flex;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1.5rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                transition: all 0.2s ease;
+                background: var(--surface);
+            }
+
+            .student-card:hover {
+                border-color: var(--primary);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .student-card.needs-attention {
+                border-left: 4px solid var(--warning);
+            }
+
+            .student-avatar {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 0.875rem;
+                flex-shrink: 0;
+            }
+
+            .student-info {
+                flex: 1;
+            }
+
+            .student-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .student-header h4 {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+
+            .student-grade {
+                background: var(--success);
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius);
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .student-details {
+                margin-bottom: 1rem;
+            }
+
+            .student-subject {
+                background: var(--background);
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius);
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+                margin-right: 0.5rem;
+            }
+
+            .student-email {
+                font-size: 0.875rem;
+                color: var(--text-muted);
+            }
+
+            .student-progress {
+                margin-bottom: 0.5rem;
+            }
+
+            .progress-info {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.75rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .student-meta {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .student-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .search-box {
+                position: relative;
+                width: 300px;
+            }
+
+            .search-box input {
+                padding-left: 2.5rem;
+            }
+
+            .search-icon {
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-muted);
+            }
+
+            .filters-row {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .filter-group {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .filter-group label {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--text-secondary);
+                margin: 0;
+            }
+
+            .form-select {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            .performance-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .performance-card {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .performance-icon {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.25rem;
+                flex-shrink: 0;
+            }
+
+            .performance-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+            }
+
+            .performance-label {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+            }
+
+            .performance-trend {
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .performance-trend.positive {
+                color: var(--success);
+            }
+
+            .performance-trend.negative {
+                color: var(--error);
+            }
+
+            .no-results {
+                text-align: center;
+                padding: 3rem;
+                color: var(--text-muted);
+                font-style: italic;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

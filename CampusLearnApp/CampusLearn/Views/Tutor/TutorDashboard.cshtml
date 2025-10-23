@@ -1,0 +1,318 @@
+﻿@{
+    ViewData["Title"] = "Tutor Dashboard";
+    Layout = "_Layout";
+}
+
+<link rel="stylesheet" href="~/css/tutor-dashboard.css" asp-append-version="true" />
+
+<div class="tutor-dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">Dashboard Overview</h1>
+            <p class="dashboard-subtitle">Welcome back to your tutor dashboard</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Stats Cards -->
+                <div class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">Active Sessions</div>
+                            <div class="stat-period">This week</div>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up">+2</span>
+                            <span class="trend-text">from last week</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">Completed Wks</div>
+                            <div class="stat-period">This month</div>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up">+1</span>
+                            <span class="trend-text">from last month</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-value">24</div>
+                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-period">This week</div>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-up">+5</span>
+                            <span class="trend-text">from last week</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-value">15</div>
+                            <div class="stat-label">Learning Score</div>
+                            <div class="stat-period">Average</div>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-stable">Stable</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Programs -->
+                <div class="programs-section">
+                    <h2 class="section-title">Current Programs</h2>
+                    <div class="programs-grid">
+                        <div class="program-card">
+                            <div class="program-header">
+                                <h3 class="program-name">JavaScript Fundamentals</h3>
+                                <span class="student-name">Alice Johnson</span>
+                            </div>
+                            <div class="progress-section">
+                                <span class="progress-label">Progress</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="program-card">
+                            <div class="program-header">
+                                <h3 class="program-name">React Development</h3>
+                                <span class="student-name">Bob Smith</span>
+                            </div>
+                            <div class="progress-section">
+                                <span class="progress-label">Progress</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="program-card">
+                            <div class="program-header">
+                                <h3 class="program-name">Python Basics</h3>
+                                <span class="student-name">Carol Davis</span>
+                            </div>
+                            <div class="progress-section">
+                                <span class="progress-label">Progress</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-section">
+                    <h2 class="section-title">Recent Activity</h2>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon completed"></div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">Completed Algorithm Coding 1 with Alice</h4>
+                                <span class="activity-time">2 hours ago</span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-icon booking"></div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">New booking from Michael Chen</h4>
+                                <span class="activity-time">4 hours ago</span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-icon payment"></div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">Payment received - $150</h4>
+                                <span class="activity-time">6 hours ago</span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-icon upcoming"></div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">Upcoming React Lesson with Sarah</h4>
+                                <span class="activity-time">Tomorrow at 2:00 PM</span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-icon review"></div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">New 5-star review from Bob Smith</h4>
+                                <span class="activity-time">1 day ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="view-all-link">View all activity →</a>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Upcoming Sessions -->
+                <div class="sessions-section">
+                    <h2 class="section-title">Upcoming Sessions</h2>
+                    <div class="sessions-list">
+                        <div class="session-item">
+                            <div class="session-avatar">AJ</div>
+                            <div class="session-details">
+                                <h4 class="session-student">Alice Johnson</h4>
+                                <div class="session-info">
+                                    <span class="session-subject">JavaScript</span>
+                                    <span class="session-duration">+1 hour</span>
+                                </div>
+                                <div class="session-type">Video Call</div>
+                            </div>
+                        </div>
+
+                        <div class="session-item">
+                            <div class="session-avatar">BS</div>
+                            <div class="session-details">
+                                <h4 class="session-student">Bob Smith</h4>
+                                <div class="session-info">
+                                    <span class="session-subject">React</span>
+                                    <span class="session-duration">+1.5 hours</span>
+                                </div>
+                                <div class="session-type">In Person</div>
+                            </div>
+                        </div>
+
+                        <div class="session-item">
+                            <div class="session-avatar">CD</div>
+                            <div class="session-details">
+                                <h4 class="session-student">Carol Davis</h4>
+                                <div class="session-info">
+                                    <span class="session-subject">Python</span>
+                                    <span class="session-duration">+1 hour</span>
+                                </div>
+                                <div class="session-type">Video Call</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="view-calendar-link">View Calendar</a>
+                </div>
+
+                <!-- Session Times -->
+                <div class="session-times">
+                    <div class="time-slot">
+                        <div class="time-info">
+                            <span class="time-label">Today, 2:00 PM</span>
+                        </div>
+                        <button class="join-btn">Join Session</button>
+                    </div>
+
+                    <div class="time-slot">
+                        <div class="time-info">
+                            <span class="time-label">Tomorrow, 10:00 AM</span>
+                        </div>
+                        <button class="join-btn">Join Session</button>
+                    </div>
+
+                    <div class="time-slot">
+                        <div class="time-info">
+                            <span class="time-label">Wed, 3:00 PM</span>
+                        </div>
+                        <button class="join-btn">Join Session</button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-section">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <div class="actions-list">
+                        <a href="#" class="action-item">
+                            <div class="action-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4 class="action-title">Schedule Session</h4>
+                                <p class="action-description">Book a new tutoring session</p>
+                            </div>
+                        </a>
+
+                        <a href="#" class="action-item">
+                            <div class="action-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4 class="action-title">Student Messages</h4>
+                                <p class="action-description">Check new messages</p>
+                            </div>
+                        </a>
+
+                        <a href="#" class="action-item">
+                            <div class="action-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4 class="action-title">Add Resources</h4>
+                                <p class="action-description">Upload learning materials</p>
+                            </div>
+                        </a>
+
+                        <a href="#" class="action-item">
+                            <div class="action-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4 class="action-title">Generate Report</h4>
+                                <p class="action-description">Create progress report</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Join session buttons
+            const joinButtons = document.querySelectorAll('.join-btn');
+            joinButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const timeSlot = this.closest('.time-slot');
+                    const timeLabel = timeSlot.querySelector('.time-label').textContent;
+
+                    // Show loading state
+                    const originalText = this.textContent;
+                    this.textContent = 'Joining...';
+                    this.disabled = true;
+
+                    setTimeout(() => {
+                        alert(`Joining session scheduled for ${timeLabel}`);
+                        this.textContent = originalText;
+                        this.disabled = false;
+                    }, 1000);
+                });
+            });
+
+            // Quick action items
+            const actionItems = document.querySelectorAll('.action-item');
+            actionItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const actionTitle = this.querySelector('.action-title').textContent;
+                    alert(`Opening: ${actionTitle}`);
+                });
+            });
+        });
+    </script>
+}

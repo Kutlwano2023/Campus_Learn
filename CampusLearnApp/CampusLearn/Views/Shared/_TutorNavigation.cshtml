@@ -1,0 +1,241 @@
+﻿@{
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var isTutor = User.IsInRole("TUTOR") || User.IsInRole("Tutor");
+}
+
+@if (isTutor)
+{
+    <!-- Sidebar Container -->
+    <aside class="h-screen w-64 bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-50">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b">
+            <div class="flex items-center space-x-2">
+                <h1 class="text-lg font-semibold text-gray-900">Campus Learn</h1>
+                <span class="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">Tutor</span>
+            </div>
+            <span class="text-xs text-gray-500">v2.0</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
+            <!-- Dashboard -->
+            <a asp-controller="Tutor" asp-action="TutorDashboard"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-tachometer-alt me-2 text-purple-600"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Tutor Portal -->
+            <a asp-controller="Tutor" asp-action="TutorPortal"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-chalkboard-teacher me-2 text-purple-600"></i>
+                <span>Tutor Portal</span>
+            </a>
+
+            <!-- My Students -->
+            <a asp-controller="Tutor" asp-action="MyStudents"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-users me-2 text-purple-600"></i>
+                <span>My Students</span>
+            </a>
+
+            <!-- Session Management -->
+            <a asp-controller="Tutor" asp-action="SessionManagement"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-calendar-check me-2 text-purple-600"></i>
+                <span>Session Management</span>
+            </a>
+
+            <!-- Assignment Management -->
+            <a asp-controller="Tutor" asp-action="AssignmentManagement"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-tasks me-2 text-purple-600"></i>
+                <span>Assignment Management</span>
+            </a>
+
+            <!-- Grade Management -->
+            <a asp-controller="Tutor" asp-action="GradeManagement"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-chart-bar me-2 text-purple-600"></i>
+                <span>Grade Management</span>
+            </a>
+
+            <!-- Resource Management -->
+            <a asp-controller="Tutor" asp-action="ResourceManagement"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-folder-plus me-2 text-purple-600"></i>
+                <span>Resource Management</span>
+            </a>
+
+            <!-- Progress Tracking -->
+            <a asp-controller="Tutor" asp-action="ProgressTracking"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-chart-line me-2 text-purple-600"></i>
+                <span>Progress Tracking</span>
+            </a>
+
+            <!-- Tutor Analytics -->
+            <a asp-controller="Tutor" asp-action="TutorAnalytics"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-chart-pie me-2 text-purple-600"></i>
+                <span>Tutor Analytics</span>
+            </a>
+
+            <!-- Messaging -->
+            <a asp-controller="Chat" asp-action="Index"
+               class="flex items-center p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition">
+                <i class="fas fa-comments me-2 text-purple-600"></i>
+                <span>Messaging</span>
+                <span class="ml-auto px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full" id="unreadMessagesBadge">0</span>
+            </a>
+        </nav>
+
+        <!-- User Menu at Bottom -->
+        <div class="p-4 border-t">
+            <div class="dropdown relative">
+                <button class="flex items-center w-full p-2 text-gray-700 hover:bg-purple-50 rounded-lg transition dropdown-toggle"
+                        type="button" id="userDropdown" data-bs-toggle="dropdown">
+                    <div class="flex items-center space-x-2 flex-1">
+                        <i class="fas fa-user-circle me-2 text-purple-600"></i>
+                        <div class="text-left">
+                            <div class="text-sm font-medium">@ViewBag.UserName</div>
+                            <div class="text-xs text-gray-500">Tutor</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <ul class="dropdown-menu absolute bottom-full left-0 mb-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg hidden"
+                    aria-labelledby="userDropdown">
+                    <li>
+                        <a asp-controller="Portal" asp-action="Profile"
+                           class="flex items-center px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-t-lg">
+                            <i class="fas fa-user me-2 text-sm text-purple-600"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Portal" asp-action="Settings"
+                           class="flex items-center px-3 py-2 text-gray-700 hover:bg-purple-50">
+                            <i class="fas fa-cog me-2 text-sm text-purple-600"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Tutor" asp-action="TutorSettings"
+                           class="flex items-center px-3 py-2 text-gray-700 hover:bg-purple-50">
+                            <i class="fas fa-chalkboard me-2 text-sm text-purple-600"></i>
+                            <span>Tutor Settings</span>
+                        </a>
+                    </li>
+                    <li><hr class="border-gray-200 my-1"></li>
+                    <li>
+                        <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-b-lg">
+                                <i class="fas fa-sign-out-alt me-2 text-sm text-purple-600"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area Spacer -->
+    <div class="ml-64">
+        <!-- This div pushes the main content to the right of the sidebar -->
+    </div>
+
+    <!-- Custom CSS for dropdown functionality -->
+    <style>
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu {
+            min-width: 200px;
+        }
+
+        /* Custom scrollbar for sidebar */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+            .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+
+        /* Active link styling */
+        .nav-link.active {
+            background-color: #faf5ff;
+            border-left: 2px solid #8b5cf6;
+        }
+    </style>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <script>
+            // Set user ID for messaging system
+            document.body.setAttribute('data-user-id', '@userId');
+
+            // Bootstrap dropdown functionality for sidebar
+            document.addEventListener('DOMContentLoaded', function() {
+                var dropdowns = document.querySelectorAll('.dropdown-toggle');
+                dropdowns.forEach(function(dropdown) {
+                    dropdown.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var menu = this.nextElementSibling;
+                        menu.classList.toggle('hidden');
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
+                            menu.classList.add('hidden');
+                        });
+                    }
+                });
+
+                // Load unread message count for tutors
+                fetch('/api/messaging/unread-count')
+                    .then(response => response.json())
+                    .then(data => {
+                        const badge = document.getElementById('unreadMessagesBadge');
+                        if (badge && data.count > 0) {
+                            badge.textContent = data.count;
+                        } else if (badge) {
+                            badge.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Error fetching unread count:', error));
+
+                // Highlight current page in navigation
+                const currentPath = window.location.pathname;
+                const navLinks = document.querySelectorAll('nav a');
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') && currentPath.includes(link.getAttribute('href').split('/').pop())) {
+                        link.classList.add('bg-purple-50', 'border-l-2', 'border-purple-500');
+                        link.classList.remove('hover:bg-purple-50');
+                    }
+                });
+            });
+        </script>
+    }
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}
