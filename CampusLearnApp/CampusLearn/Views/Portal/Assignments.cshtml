@@ -1,110 +1,310 @@
-﻿@{
-    ViewData["Title"] = "Assignments";
-    Layout = "_Layout";
+﻿﻿@{
+ViewData["Title"] = "Assignments";
+Layout = "_Layout";
 }
 
 <partial name="_PortalNavigation" />
-<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/assignments.css" asp-append-version="true" />
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Assignments</h1>
-
-            @if (ViewBag.Role == "Tutor")
-            {
-                <div class="alert alert-info">
-                    <h4>Tutor Assignment Management</h4>
-                    <p>Create, manage, and grade assignments for your students.</p>
+<div class="dashboard-container">
+    <!-- Blue Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Assignments</h1>
+                <p class="dashboard-subtitle">Complete assignments to demonstrate your skills and get feedback</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-tasks me-2"></i>
+                    Active Learning • <strong>@(ViewBag.Role ?? "Student")</strong>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
-                                <h5>Create Assignment</h5>
-                                <a href="#" class="btn btn-primary">New Assignment</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                <h5>Grade Submissions</h5>
-                                <a href="#" class="btn btn-success">View Submissions</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
-                                <h5>View Analytics</h5>
-                                <a href="#" class="btn btn-info">Performance Reports</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <h4>Student Assignments</h4>
-                    <p>View and submit your course assignments.</p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3>My Assignments</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Course</th>
-                                        <th>Assignment</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Mathematics</td>
-                                        <td>Calculus Problem Set</td>
-                                        <td>Dec 15, 2024</td>
-                                        <td><span class="badge bg-warning">Pending</span></td>
-                                        <td><a href="#" class="btn btn-sm btn-primary">Submit</a></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Physics</td>
-                                        <td>Lab Report</td>
-                                        <td>Dec 12, 2024</td>
-                                        <td><span class="badge bg-success">Submitted</span></td>
-                                        <td><a href="#" class="btn btn-sm btn-outline-secondary">View</a></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Computer Science</td>
-                                        <td>Programming Project</td>
-                                        <td>Dec 20, 2024</td>
-                                        <td><span class="badge bg-info">In Progress</span></td>
-                                        <td><a href="#" class="btn btn-sm btn-primary">Continue</a></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <div class="mt-3">
-                <a asp-controller="Portal" asp-action="Dashboard" class="btn btn-outline-primary">
-                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
-                </a>
             </div>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="container">
+            <!-- Tabs -->
+            <div class="tabs" role="tablist" aria-label="Assignments Tabs">
+                <div class="tab active" role="tab" aria-selected="true" aria-controls="panel-available" id="tab-available">Available Assignments</div>
+                <div class="tab" role="tab" aria-selected="false" aria-controls="panel-inprogress" id="tab-inprogress">In Progress</div>
+                <div class="tab" role="tab" aria-selected="false" aria-controls="panel-completed" id="tab-completed">Completed</div>
+            </div>
+
+            <!-- Search + filter -->
+            <div class="bar">
+                <div class="search">
+                    <input type="search" placeholder="Search assignments..." id="searchInput" />
+                </div>
+                <button class="btn-outline" id="filterButton">Filter</button>
+            </div>
+
+            <!-- Category chips -->
+            <div class="chips" aria-label="Categories">
+                <button class="chip active">All Types</button>
+                <button class="chip">Project</button>
+                <button class="chip">Coding</button>
+                <button class="chip">Design</button>
+                <button class="chip">Essay</button>
+                <button class="chip">Beginner</button>
+                <button class="chip">Intermediate</button>
+                <button class="chip">Advanced</button>
+            </div>
+
+            <!-- AVAILABLE ASSIGNMENTS -->
+            <section id="panel-available" class="tab-panel active" role="tabpanel" aria-labelledby="tab-available">
+                <div class="grid two">
+                    <!-- Card: React State Management Project -->
+                    <article class="card assignment">
+                        <div class="head">
+                            <div class="title">React State Management Project</div>
+                            <span class="badge level-adv">Advanced</span>
+                        </div>
+                        <div class="subtitle sub">
+                            Build a complex application demonstrating advanced state management patterns using Redux and Context API
+                        </div>
+
+                        <div class="meta">
+                            <span><b>40-50</b> Hours</span>
+                            <span><b>Jan 15</b> Due Date</span>
+                        </div>
+
+                        <div class="req">
+                            <div class="label">Requirements:</div>
+                            <div class="tags">
+                                <span class="tag">React</span>
+                                <span class="tag">Redux</span>
+                                <span class="tag">Context API</span>
+                                <span class="tag">TypeScript</span>
+                            </div>
+                        </div>
+
+                        <div class="author">
+                            <span>👤</span> <span>Sarah Chen</span> <span class="star">★ 4.8</span>
+                        </div>
+
+                        <div class="cta-row">
+                            <button class="btn-primary">Start Assignment</button>
+                        </div>
+                        <div class="points">100 points</div>
+                    </article>
+
+                    <!-- Card: API Design and Documentation -->
+                    <article class="card assignment">
+                        <div class="head">
+                            <div class="title">API Design and Documentation</div>
+                            <span class="badge level-int">Intermediate</span>
+                        </div>
+                        <div class="subtitle sub">
+                            Design and document a RESTful API with comprehensive OpenAPI specifications
+                        </div>
+
+                        <div class="meta">
+                            <span><b>25-30</b> Hours</span>
+                            <span><b>Jan 20</b> Due Date</span>
+                        </div>
+
+                        <div class="req">
+                            <div class="label">Requirements:</div>
+                            <div class="tags">
+                                <span class="tag">REST APIs</span>
+                                <span class="tag">OpenAPI</span>
+                                <span class="tag">Node.js</span>
+                                <span class="tag">Express</span>
+                            </div>
+                        </div>
+
+                        <div class="author">
+                            <span>👤</span> <span>David Kim</span> <span class="star">★ 4.7</span>
+                        </div>
+
+                        <div class="cta-row">
+                            <button class="btn-primary">Start Assignment</button>
+                        </div>
+                        <div class="points">75 points</div>
+                    </article>
+
+                    <!-- Card: CSS Animation Portfolio -->
+                    <article class="card assignment span-2">
+                        <div class="head">
+                            <div class="title">CSS Animation Portfolio</div>
+                            <span class="badge level-beg">Beginner</span>
+                        </div>
+                        <div class="subtitle sub">
+                            Create an interactive portfolio showcasing advanced CSS animations and transitions
+                        </div>
+
+                        <div class="meta">
+                            <span><b>15-20</b> Hours</span>
+                            <span><b>Jan 10</b> Due Date</span>
+                        </div>
+
+                        <div class="req">
+                            <div class="label">Requirements:</div>
+                            <div class="tags">
+                                <span class="tag">CSS3</span>
+                                <span class="tag">Animations</span>
+                                <span class="tag">Responsive Design</span>
+                                <span class="tag">HTML5</span>
+                            </div>
+                        </div>
+
+                        <div class="author">
+                            <span>👤</span> <span>Maria Garcia</span> <span class="star">★ 4.4</span>
+                        </div>
+
+                        <div class="cta-row">
+                            <button class="btn-primary">Start Assignment</button>
+                        </div>
+                        <div class="points">50 points</div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- IN PROGRESS -->
+            <section id="panel-inprogress" class="tab-panel" role="tabpanel" aria-labelledby="tab-inprogress" hidden>
+                <h3 class="section-title"><span class="check">⏳</span>Assignments in Progress</h3>
+                <p class="subtitle">Complete these assignments to demonstrate your skills</p>
+
+                <div class="grid">
+                    <article class="card">
+                        <div class="head">
+                            <div class="title">E-commerce Website Project</div>
+                            <span class="badge level-adv">Project</span>
+                        </div>
+                        <div class="subtitle sub">
+                            Build a full-stack e-commerce application using React and Node.js
+                        </div>
+                        <div class="author m6">
+                            <span>👤</span> <span>Sarah Chen</span>
+                            <span class="muted">Due: Dec 20</span>
+                        </div>
+
+                        <div class="progress-wrap">
+                            <div class="progress-label"><span>Progress</span><span>45%</span></div>
+                            <div class="bar-track"><div class="bar-fill w-45"></div></div>
+                        </div>
+
+                        <div class="cta-row">
+                            <button class="btn-primary">Continue Work</button>
+                            <button class="btn-small">View Details</button>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="head">
+                            <div class="title">React Todo App</div>
+                            <span class="badge level-int">Coding</span>
+                        </div>
+                        <div class="subtitle sub">
+                            Create a feature-rich todo application with React hooks
+                        </div>
+                        <div class="author m6">
+                            <span>👤</span> <span>Mike Rodriguez</span>
+                            <span class="muted">Due: Dec 18</span>
+                        </div>
+
+                        <div class="progress-wrap">
+                            <div class="progress-label"><span>Progress</span><span>75%</span></div>
+                            <div class="bar-track"><div class="bar-fill w-75"></div></div>
+                        </div>
+
+                        <div class="cta-row">
+                            <button class="btn-primary">Continue Work</button>
+                            <button class="btn-small">View Details</button>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="head">
+                            <div class="title">Database Schema Design</div>
+                            <span class="badge level-int">Design</span>
+                        </div>
+                        <div class="subtitle sub">
+                            Design a normalized database schema for a library management system
+                        </div>
+                        <div class="author m6">
+                            <span>👤</span> <span>Dr. Lisa Wang</span>
+                            <span class="muted">Due: Dec 25</span>
+                        </div>
+
+                        <div class="progress-wrap">
+                            <div class="progress-label"><span>Progress</span><span>20%</span></div>
+                            <div class="bar-track"><div class="bar-fill w-20"></div></div>
+                        </div>
+
+                        <div class="cta-row">
+                            <button class="btn-primary">Continue Work</button>
+                            <button class="btn-small">View Details</button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- COMPLETED -->
+            <section id="panel-completed" class="tab-panel" role="tabpanel" aria-labelledby="tab-completed" hidden>
+                <h3 class="section-title"><span class="check">✔</span>Completed Assignments</h3>
+                <p class="subtitle">Your submitted assignments and grades</p>
+
+                <div class="grid">
+                    <article class="card">
+                        <div class="head">
+                            <div>
+                                <div class="title">Personal Portfolio Website</div>
+                                <div class="subtitle">Submitted: Dec 10 • Emma Wilson</div>
+                            </div>
+                            <div class="right-actions">
+                                <span class="pill-score">A</span>
+                                <span class="badge level-beg">Project</span>
+                                <button class="btn-small">View Submission</button>
+                            </div>
+                        </div>
+                        <div class="feedback">
+                            "Excellent work! Great attention to detail and clean code structure."
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="head">
+                            <div>
+                                <div class="title">JavaScript Calculator</div>
+                                <div class="subtitle">Submitted: Dec 5 • Tom Bradley</div>
+                            </div>
+                            <div class="right-actions">
+                                <span class="pill-score" style="background: var(--warning);">B+</span>
+                                <span class="badge level-beg">Coding</span>
+                                <button class="btn-small">View Details</button>
+                            </div>
+                        </div>
+                        <div class="feedback">
+                            "Good implementation, minor improvements needed in error handling."
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="head">
+                            <div>
+                                <div class="title">UI/UX Design Analysis</div>
+                                <div class="subtitle">Submitted: Dec 1 • Alex Chen</div>
+                            </div>
+                            <div class="right-actions">
+                                <span class="pill-score" style="background: var(--secondary);">A-</span>
+                                <span class="badge level-int">Essay</span>
+                                <button class="btn-small">View Submission</button>
+                            </div>
+                        </div>
+                        <div class="feedback">
+                            "Thorough analysis with great insights into user experience."
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </main>
 </div>
+
+@section Scripts {
+    <script src="~/js/assignments.js" asp-append-version="true"></script>
+}

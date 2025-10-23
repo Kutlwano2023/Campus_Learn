@@ -1,81 +1,525 @@
-﻿@{
-    ViewData["Title"] = "Forum";
+﻿@model CampusLearn.ViewModels.ForumViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Community Forum";
     Layout = "_Layout";
+
+    // Get the current user and their full name
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "User";
+    var role = ViewBag.Role ?? "Student";
 }
 
-<partial name="_PortalNavigation" />
-<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+@section Styles {
+    <link rel="stylesheet" href="~/css/forum.css" asp-append-version="true" />
+}
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Discussion Forum</h1>
-
-            @if (ViewBag.Role == "Tutor")
-            {
-                <div class="alert alert-info">
-                    <h4>Tutor Forum Management</h4>
-                    <p>Monitor discussions, answer questions, and moderate forum content.</p>
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Community Forum</h1>
+                <p class="dashboard-subtitle">Connect, discuss, and learn with fellow students</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-comments me-2"></i>
+                    Hello, @fullName! • <strong>@role</strong>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Unanswered Questions</h5>
-                                <p class="card-text">Review and respond to student questions.</p>
-                                <a href="#" class="btn btn-primary">View Questions</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Forum Analytics</h5>
-                                <p class="card-text">View discussion activity and engagement metrics.</p>
-                                <a href="#" class="btn btn-info">View Analytics</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <p>Participate in discussions and ask questions here.</p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3>Recent Discussions</h3>
-                        <button class="btn btn-primary">New Topic</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group">
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">Help with Calculus Problem</h5>
-                                    <small>3 hours ago</small>
-                                </div>
-                                <p class="mb-1">Struggling with this integration problem from chapter 5...</p>
-                                <small>Mathematics • 5 replies</small>
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">Study Group for Physics Exam</h5>
-                                    <small>1 day ago</small>
-                                </div>
-                                <p class="mb-1">Anyone interested in forming a study group for the upcoming physics exam?</p>
-                                <small>Physics • 12 replies</small>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <div class="mt-3">
-                <a asp-controller="Portal" asp-action="Dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
             </div>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Main Content -->
+            <div class="main-column">
+                <!-- Forum Header Card -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="title-icon bg-blue-100 text-blue-600">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div>
+                                <h2>Community Discussions</h2>
+                                <p class="section-description">Join conversations and share knowledge</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary new-topic">
+                            <i class="fas fa-plus me-2"></i>New Topic
+                        </button>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="tabs" role="tablist" aria-label="Forum Tabs">
+                        <button class="tab active" role="tab" aria-selected="true" aria-controls="panel-recent" id="tab-recent">
+                            <i class="fas fa-clock me-2"></i>Recent Discussions
+                        </button>
+                        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-popular" id="tab-popular">
+                            <i class="fas fa-fire me-2"></i>Popular
+                        </button>
+                        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-unanswered" id="tab-unanswered">
+                            <i class="fas fa-question-circle me-2"></i>Unanswered
+                        </button>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="search" style="margin-top: 1rem;">
+                        <input type="search" placeholder="Search discussions..." aria-label="Search discussions" />
+                    </div>
+                </div>
+
+                <!-- Recent Discussions Panel -->
+                <div id="panel-recent" class="tab-panel active" role="tabpanel" aria-labelledby="tab-recent">
+                    @foreach (var topic in Model.Topics)
+                    {
+                        <div class="section-card" style="margin-bottom: 1rem;">
+                            <div class="topic">
+                                <div class="topic-body">
+                                    <div class="session-avatar @GetAvatarColor(topic.AuthorInitials)">
+                                        @topic.AuthorInitials
+                                    </div>
+                                    <div class="topic-main" style="flex: 1;">
+                                        <div class="topic-title-row">
+                                            @if (topic.IsFeatured)
+                                            {
+                                                <span class="pin" title="Featured">
+                                                    <i class="fas fa-star text-warning me-1"></i>
+                                                </span>
+                                            }
+                                            @if (topic.IsPinned)
+                                            {
+                                                <span class="pin" title="Pinned">
+                                                    <i class="fas fa-thumbtack text-primary me-1"></i>
+                                                </span>
+                                            }
+                                            <a href="#" class="topic-title" style="font-size: 1.1rem; font-weight: 600;">@topic.Title</a>
+                                            <span class="pill cat @topic.Category.ToLower()">@topic.Category</span>
+                                        </div>
+                                        <div class="meta">
+                                            <span>by <a href="#" class="author">@topic.Author</a></span>
+                                            <span class="dot">•</span>
+                                            <span>@topic.PostedTime</span>
+                                        </div>
+                                        <div class="stats">
+                                            <span class="stat">
+                                                <i class="fas fa-comments me-1"></i><strong>@topic.ReplyCount</strong> replies
+                                            </span>
+                                            <span class="stat">
+                                                <i class="fas fa-heart me-1"></i><strong>@topic.LikeCount</strong> likes
+                                            </span>
+                                        </div>
+                                        <div class="tags">
+                                            @foreach (var tag in topic.Tags)
+                                            {
+                                                <span class="tag">@tag</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-actions">
+                                    <button class="btn ghost icon" title="Share">
+                                        <i class="fas fa-share"></i>
+                                    </button>
+                                    <button class="btn btn-primary reply">
+                                        <i class="fas fa-reply me-1"></i>Reply
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Popular Panel -->
+                <div id="panel-popular" class="tab-panel" role="tabpanel" aria-labelledby="tab-popular" hidden>
+                    @foreach (var topic in Model.PopularTopics)
+                    {
+                        <div class="section-card" style="margin-bottom: 1rem;">
+                            <div class="topic">
+                                <div class="topic-body">
+                                    <div class="session-avatar @GetAvatarColor(topic.AuthorInitials)">
+                                        @topic.AuthorInitials
+                                    </div>
+                                    <div class="topic-main" style="flex: 1;">
+                                        <div class="topic-title-row">
+                                            @if (topic.IsFeatured)
+                                            {
+                                                <span class="pin" title="Featured">
+                                                    <i class="fas fa-star text-warning me-1"></i>
+                                                </span>
+                                            }
+                                            <a href="#" class="topic-title" style="font-size: 1.1rem; font-weight: 600;">@topic.Title</a>
+                                            <span class="pill cat @topic.Category.ToLower()">@topic.Category</span>
+                                        </div>
+                                        <div class="meta">
+                                            <span>by <a href="#" class="author">@topic.Author</a></span>
+                                            <span class="dot">•</span>
+                                            <span>@topic.PostedTime</span>
+                                        </div>
+                                        <div class="stats">
+                                            <span class="stat">
+                                                <i class="fas fa-comments me-1"></i><strong>@topic.ReplyCount</strong> replies
+                                            </span>
+                                            <span class="stat">
+                                                <i class="fas fa-heart me-1"></i><strong>@topic.LikeCount</strong> likes
+                                            </span>
+                                        </div>
+                                        <div class="tags">
+                                            @foreach (var tag in topic.Tags)
+                                            {
+                                                <span class="tag">@tag</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-actions">
+                                    <button class="btn ghost icon" title="Share">
+                                        <i class="fas fa-share"></i>
+                                    </button>
+                                    <button class="btn btn-primary reply">
+                                        <i class="fas fa-reply me-1"></i>Reply
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Unanswered Panel -->
+                <div id="panel-unanswered" class="tab-panel" role="tabpanel" aria-labelledby="tab-unanswered" hidden>
+                    @foreach (var topic in Model.UnansweredTopics)
+                    {
+                        <div class="section-card" style="margin-bottom: 1rem;">
+                            <div class="topic">
+                                <div class="topic-body">
+                                    <div class="session-avatar @GetAvatarColor(topic.AuthorInitials)">
+                                        @topic.AuthorInitials
+                                    </div>
+                                    <div class="topic-main" style="flex: 1;">
+                                        <div class="topic-title-row">
+                                            <a href="#" class="topic-title" style="font-size: 1.1rem; font-weight: 600;">@topic.Title</a>
+                                            <span class="pill cat @topic.Category.ToLower()">@topic.Category</span>
+                                        </div>
+                                        <div class="meta">
+                                            <span>by <a href="#" class="author">@topic.Author</a></span>
+                                            <span class="dot">•</span>
+                                            <span>@topic.PostedTime</span>
+                                        </div>
+                                        <div class="stats">
+                                            <span class="stat">
+                                                <i class="fas fa-comments me-1"></i><strong>@topic.ReplyCount</strong> replies
+                                            </span>
+                                            <span class="stat">
+                                                <i class="fas fa-heart me-1"></i><strong>@topic.LikeCount</strong> likes
+                                            </span>
+                                        </div>
+                                        <div class="tags">
+                                            @foreach (var tag in topic.Tags)
+                                            {
+                                                <span class="tag">@tag</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-actions">
+                                    <button class="btn ghost icon" title="Share">
+                                        <i class="fas fa-share"></i>
+                                    </button>
+                                    <button class="btn btn-primary reply">
+                                        <i class="fas fa-reply me-1"></i>Reply
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="sidebar-column">
+                <!-- Categories Card -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Categories</h2>
+                        <p class="section-description">Browse by topic</p>
+                    </div>
+                    <div class="quick-actions">
+                        @foreach (var category in new[] {
+                                                new { Name = "React", Count = "156", Icon = "⚛️", Class = "react" },
+                                                new { Name = "JavaScript", Count = "243", Icon = "🟨", Class = "js" },
+                                                new { Name = "CSS", Count = "89", Icon = "🎨", Class = "css" },
+                                                new { Name = "Backend", Count = "67", Icon = "⚙️", Class = "backend" },
+                                                new { Name = "Database", Count = "45", Icon = "💾", Class = "db" },
+                                                new { Name = "Career", Count = "78", Icon = "💼", Class = "career" }
+                                                })
+                        {
+                            <a href="#" class="action-item category-filter" data-category="@category.Class">
+                                <div class="action-icon @GetCategoryColor(category.Class)">
+                                    <span style="font-size: 1.2rem;">@category.Icon</span>
+                                </div>
+                                <div class="action-content">
+                                    <h4>@category.Name</h4>
+                                    <p>@category.Count topics</p>
+                                </div>
+                                <i class="fas fa-chevron-right action-arrow"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Active Users Card -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Active Users</h2>
+                        <p class="section-description">Currently online</p>
+                    </div>
+                    <div class="activity-list">
+                        @foreach (var userItem in new[] {
+                                                new { Name = "Sarah Chen", Time = "2 min ago" },
+                                                new { Name = "Mike Rodriguez", Time = "5 min ago" },
+                                                new { Name = "Emma Wilson", Time = "8 min ago" },
+                                                new { Name = "David Kim", Time = "12 min ago" }
+                                                })
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon bg-success">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>@userItem.Name</h4>
+                                    <p class="activity-time">Active @userItem.Time</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Forum Stats Card -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Forum Stats</h2>
+                        <p class="section-description">Community metrics</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">@Model.Stats.TotalTopics</div>
+                                <div class="stat-label">Total Topics</div>
+                                <div class="stat-description">Discussion threads</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-reply"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">@Model.Stats.TotalPosts</div>
+                                <div class="stat-label">Total Posts</div>
+                                <div class="stat-description">Community replies</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-list" style="margin-top: 1rem;">
+                        <div class="progress-item">
+                            <div class="progress-info">
+                                <strong>Active Discussions</strong>
+                                <span>@Model.Stats.ActiveUsers</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @((Model.Stats.ActiveUsers / 200.0) * 100)%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Help Card -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Forum Guidelines</h2>
+                        <p class="section-description">Keep discussions productive</p>
+                    </div>
+                    <div class="quick-actions">
+                        <div class="action-item">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Be Respectful</h4>
+                                <p>Keep conversations friendly</p>
+                            </div>
+                        </div>
+                        <div class="action-item">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Share Knowledge</h4>
+                                <p>Help others learn</p>
+                            </div>
+                        </div>
+                        <div class="action-item">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Mark Solutions</h4>
+                                <p>Helpful answers</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
+
+@functions {
+    private string GetAvatarColor(string initials)
+    {
+        var colors = new[] { "bg-primary", "bg-success", "bg-info", "bg-warning", "bg-danger" };
+        var index = Math.Abs(initials.GetHashCode()) % colors.Length;
+        return colors[index];
+    }
+
+    private string GetCategoryColor(string category)
+    {
+        return category switch
+        {
+            "react" => "bg-blue-100 text-blue-600",
+            "js" => "bg-yellow-100 text-yellow-600",
+            "css" => "bg-purple-100 text-purple-600",
+            "backend" => "bg-green-100 text-green-600",
+            "db" => "bg-red-100 text-red-600",
+            "career" => "bg-indigo-100 text-indigo-600",
+            _ => "bg-gray-100 text-gray-600"
+        };
+    }
+}
+
+@section Scripts {
+    <script src="~/js/forum.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize progress bar animations
+            animateProgressBars();
+
+            // Category filter functionality
+            const categoryFilters = document.querySelectorAll('.category-filter');
+            categoryFilters.forEach(filter => {
+                filter.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const category = this.getAttribute('data-category');
+                    showNotification(`Filtering by ${category}...`, 'info');
+
+                    // Simulate filtering (in real app, this would make an API call)
+                    setTimeout(() => {
+                        showNotification(`Showing ${category} discussions`, 'success');
+                    }, 1000);
+                });
+            });
+
+            // Enhanced notification system
+            function showNotification(message, type = 'info') {
+                // Remove existing notifications
+                const existing = document.querySelectorAll('.dashboard-notification');
+                existing.forEach(notification => notification.remove());
+
+                const notification = document.createElement('div');
+                notification.className = `dashboard-notification notification-${type}`;
+
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas ${icons[type]} me-2"></i>
+                        <span>${message}</span>
+                    </div>
+                    <button class="notification-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                // Add styles
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${getNotificationColor(type)};
+                    color: white;
+                    padding: 12px 16px;
+                    border-radius: 8px;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    z-index: 1000;
+                    font-size: 14px;
+                    max-width: 300px;
+                    transform: translateX(100%);
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1rem;
+                `;
+
+                document.body.appendChild(notification);
+
+                // Animate in
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(0)';
+                    notification.style.opacity = '1';
+                }, 10);
+
+                // Auto remove
+                setTimeout(() => {
+                    hideNotification(notification);
+                }, 4000);
+            }
+
+            function getNotificationColor(type) {
+                const colors = {
+                    success: '#10b981',
+                    error: '#ef4444',
+                    warning: '#f59e0b',
+                    info: '#3b82f6'
+                };
+                return colors[type] || colors.info;
+            }
+
+            function hideNotification(notification) {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        });
+
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease-in-out';
+                    bar.style.width = width;
+                }, 100);
+            });
+        }
+    </script>
+}

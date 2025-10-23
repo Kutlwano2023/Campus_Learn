@@ -1,126 +1,338 @@
-﻿@{
-    ViewData["Title"] = "Resources";
-    Layout = "_Layout";
+﻿﻿@{
+ViewData["Title"] = "Resources";
+Layout = "_Layout";
+var isTutor = ViewBag.Role == "Tutor";
 }
 
 <partial name="_PortalNavigation" />
-<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/resources.css" asp-append-version="true" />
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Learning Resources</h1>
-
-            @if (ViewBag.Role == "Tutor")
-            {
-                <div class="alert alert-info">
-                    <h4>Tutor Resource Management</h4>
-                    <p>Upload and manage learning materials for your students.</p>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-upload fa-3x text-primary mb-3"></i>
-                                <h5>Upload Resources</h5>
-                                <a href="#" class="btn btn-primary">Upload Files</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-folder fa-3x text-success mb-3"></i>
-                                <h5>Manage Resources</h5>
-                                <a href="#" class="btn btn-success">Organize</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
-                                <h5>Usage Analytics</h5>
-                                <a href="#" class="btn btn-info">View Stats</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <p>Access all your learning materials, study guides, and educational resources.</p>
-                </div>
-            }
-
-            <!-- Resources Grid -->
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-book fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">Study Materials</h5>
-                            <p class="card-text">Textbooks, notes, and reference materials for all courses.</p>
-                            <a href="#" class="btn btn-primary">Browse Materials</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-video fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Video Lectures</h5>
-                            <p class="card-text">Recorded lectures and tutorial videos.</p>
-                            <a href="#" class="btn btn-success">Watch Videos</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
-                            <h5 class="card-title">PDF Documents</h5>
-                            <p class="card-text">Downloadable PDFs and study guides.</p>
-                            <a href="#" class="btn btn-danger">View PDFs</a>
-                        </div>
-                    </div>
-                </div>
+<div class="resources-container">
+    <!-- Header Section -->
+    <div class="resources-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="resources-title">Learning Resources</h1>
+                <p class="resources-subtitle">Access study materials, guides, and course resources</p>
             </div>
-
-            <!-- Recent Resources -->
-            <div class="card mt-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3>Recently Added Resources</h3>
-                    @if (ViewBag.Role == "Tutor")
-                    {
-                        <button class="btn btn-primary">Add New Resource</button>
-                    }
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Calculus Study Guide</h5>
-                                <small class="text-muted">3 days ago</small>
-                            </div>
-                            <p class="mb-1">Complete guide covering limits, derivatives, and integrals with practice problems.</p>
-                            <small class="text-muted">Mathematics • PDF • 2.4 MB</small>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Physics Lecture: Quantum Mechanics</h5>
-                                <small class="text-muted">1 week ago</small>
-                            </div>
-                            <p class="mb-1">Video lecture covering quantum theory fundamentals.</p>
-                            <small class="text-muted">Physics • Video • 1.2 GB</small>
-                        </a>
-                    </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-user-circle me-2"></i>
+                    @(isTutor ? "Tutor Access" : "Student Access")
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <main class="resources-content">
+        <!-- Upload Button for Tutors -->
+        @if (isTutor)
+        {
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="title-icon bg-blue-100 text-blue-600">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div>
+                            <h2>Resource Management</h2>
+                            <p class="section-description">Upload and manage learning materials for students</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        <i class="fas fa-upload me-1"></i>Upload Resource
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Notes & Documents Section -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="title-icon bg-blue-100 text-blue-600">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <h2>Notes & Documents</h2>
+                        <p class="section-description">Study materials and lecture notes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Study materials and documents will be available here soon.
+            </div>
+
+            <div class="resource-grid">
+                <!-- Document 1 -->
+                <article class="resource-card">
+                    <div class="resource-header">
+                        <div class="resource-icon bg-blue-100 text-blue-600">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="resource-info">
+                            <div class="resource-name">Introduction to Programming</div>
+                            <div class="resource-author">By Dr. Smith</div>
+                        </div>
+                    </div>
+                    <div class="resource-meta">
+                        <span class="resource-badge badge-secondary">PDF</span>
+                        <span class="resource-badge badge-light">2.1 MB</span>
+                    </div>
+                    <div class="resource-stats">
+                        <div class="resource-downloads">
+                            <i class="fas fa-download"></i>156 downloads
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            <i class="fas fa-download"></i>Download
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Document 2 -->
+                <article class="resource-card">
+                    <div class="resource-header">
+                        <div class="resource-icon bg-green-100 text-green-600">
+                            <i class="fas fa-file-word"></i>
+                        </div>
+                        <div class="resource-info">
+                            <div class="resource-name">Web Development Notes</div>
+                            <div class="resource-author">By Prof. Johnson</div>
+                        </div>
+                    </div>
+                    <div class="resource-meta">
+                        <span class="resource-badge badge-secondary">DOCX</span>
+                        <span class="resource-badge badge-light">1.8 MB</span>
+                    </div>
+                    <div class="resource-stats">
+                        <div class="resource-downloads">
+                            <i class="fas fa-download"></i>203 downloads
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            <i class="fas fa-download"></i>Download
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Study Guides Section -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="title-icon bg-green-100 text-green-600">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div>
+                        <h2>Study Guides</h2>
+                        <p class="section-description">Comprehensive study guides and reference materials</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Comprehensive study guides coming soon.
+            </div>
+
+            <div class="resource-grid">
+                <!-- Study Guide 1 -->
+                <article class="resource-card">
+                    <div class="resource-header">
+                        <div class="resource-icon bg-purple-100 text-purple-600">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <div class="resource-info">
+                            <div class="resource-name">JavaScript Fundamentals</div>
+                            <div class="resource-author">By Sarah Chen</div>
+                        </div>
+                    </div>
+                    <div class="resource-meta">
+                        <span class="resource-badge badge-secondary">PDF</span>
+                        <span class="resource-badge badge-light">3.2 MB</span>
+                    </div>
+                    <div class="resource-stats">
+                        <div class="resource-downloads">
+                            <i class="fas fa-download"></i>89 downloads
+                        </div>
+                        <button class="btn btn-outline-success btn-sm" disabled>
+                            <i class="fas fa-download"></i>Download
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Research Papers Section -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="title-icon bg-purple-100 text-purple-600">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h2>Research Papers</h2>
+                        <p class="section-description">Academic research papers and publications</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Academic research papers will be available in this section.
+            </div>
+
+            <div class="resource-grid">
+                <!-- Research Paper -->
+                <article class="resource-card resource-card-large">
+                    <div class="resource-content">
+                        <div class="resource-main">
+                            <div class="resource-header">
+                                <div class="resource-icon bg-info text-white">
+                                    <i class="fas fa-file-contract"></i>
+                                </div>
+                                <div class="resource-info">
+                                    <div class="resource-name">Machine Learning Applications</div>
+                                    <div class="resource-author">By Dr. Lisa Wang</div>
+                                </div>
+                            </div>
+                            <div class="resource-description">
+                                Exploring modern applications of machine learning in education technology. This paper discusses innovative approaches to personalized learning systems.
+                            </div>
+                            <div class="resource-meta">
+                                <span class="resource-badge badge-secondary">Research Paper</span>
+                                <span class="resource-badge badge-light">4.5 MB</span>
+                                <span class="resource-badge badge-secondary">12 pages</span>
+                            </div>
+                        </div>
+                        <div class="resource-side">
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-download me-1"></i>Download Paper
+                            </button>
+                            <div class="resource-downloads">
+                                <i class="fas fa-download"></i>45 downloads
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Course Downloads Section -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="title-icon bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div>
+                        <h2>Course Downloads</h2>
+                        <p class="section-description">Complete course materials and resource packs</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Complete course materials and resource packs.
+            </div>
+
+            <div class="course-pack-grid">
+                <!-- Course Pack 1 -->
+                <article class="course-pack-card">
+                    <div class="course-pack-header">
+                        <div class="course-pack-icon bg-primary text-white">
+                            <i class="fab fa-react"></i>
+                        </div>
+                        <div class="course-pack-info">
+                            <div class="course-pack-name">React Course Materials</div>
+                            <div class="course-pack-description">
+                                Complete set of React course materials including examples, exercises, and projects.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="course-pack-meta">
+                        <div class="course-pack-stats">
+                            <span><i class="fas fa-file me-1"></i>24 files</span>
+                            <span><i class="fas fa-hdd me-1"></i>156 MB</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-warning btn-block" disabled>
+                        <i class="fas fa-download me-1"></i>Download Pack
+                    </button>
+                </article>
+
+                <!-- Course Pack 2 -->
+                <article class="course-pack-card">
+                    <div class="course-pack-header">
+                        <div class="course-pack-icon bg-success text-white">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <div class="course-pack-info">
+                            <div class="course-pack-name">Python Data Science</div>
+                            <div class="course-pack-description">
+                                Comprehensive Python data science materials with datasets and Jupyter notebooks.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="course-pack-meta">
+                        <div class="course-pack-stats">
+                            <span><i class="fas fa-file me-1"></i>18 files</span>
+                            <span><i class="fas fa-hdd me-1"></i>89 MB</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-warning btn-block" disabled>
+                        <i class="fas fa-download me-1"></i>Download Pack
+                    </button>
+                </article>
+            </div>
+        </section>
+    </main>
 </div>
+
+<!-- Upload Modal (for tutors) -->
+@if (isTutor)
+{
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload New Resource</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Resource upload functionality will be available soon. Tutors will be able to upload study materials, guides, and course resources for students.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/resources.js" asp-append-version="true"></script>
+}
