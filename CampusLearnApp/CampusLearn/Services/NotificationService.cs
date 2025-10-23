@@ -47,13 +47,14 @@ namespace CampusLearn.Services
             {
                 var b = new ConcurrentBag<Notification>();
 
+                // Updated seed links to match real controllers/views in your project.
                 b.Add(new Notification
                 {
                     UserId = id,
                     Type = NotificationType.Announcement,
                     Title = "New Announcement",
                     Message = "Midterm schedule published.",
-                    Link = "/Announcements/Details/1",
+                    Link = "/Portal/StudentPortal",      // PortalController.StudentPortal
                     CreatedAtUtc = DateTime.UtcNow.AddHours(-4),
                     IsRead = false
                 });
@@ -64,7 +65,7 @@ namespace CampusLearn.Services
                     Type = NotificationType.Connection,
                     Title = "Tutor Connected",
                     Message = "Your tutor has accepted your request.",
-                    Link = "/Connections",
+                    Link = "/Portal/StudentPortal",      // safe fallback
                     CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
                     IsRead = false
                 });
@@ -75,7 +76,7 @@ namespace CampusLearn.Services
                     Type = NotificationType.Message,
                     Title = "New Message",
                     Message = "You have a new message in your inbox.",
-                    Link = "/Messages/Inbox",
+                    Link = "/Portal/StudentPortal",      // messaging UI lives on portal pages (widget)
                     CreatedAtUtc = DateTime.UtcNow.AddHours(-2),
                     IsRead = false
                 });
@@ -86,7 +87,7 @@ namespace CampusLearn.Services
                     Type = NotificationType.UpcomingQuiz,
                     Title = "Quiz Tomorrow",
                     Message = "Quiz: JavaScript Basics starts within 24 hours.",
-                    Link = "/Quizzes",
+                    Link = "/Portal/QuizPortal",         // PortalController.QuizPortal
                     CreatedAtUtc = DateTime.UtcNow.AddHours(-3),
                     IsRead = false
                 });
@@ -97,7 +98,7 @@ namespace CampusLearn.Services
                     Type = NotificationType.IncompleteQuiz,
                     Title = "Incomplete Quiz",
                     Message = "You have an available quiz you haven't started yet.",
-                    Link = "/Quizzes",
+                    Link = "/Portal/QuizPortal",         // PortalController.QuizPortal
                     CreatedAtUtc = DateTime.UtcNow.AddHours(-10),
                     IsRead = false
                 });
