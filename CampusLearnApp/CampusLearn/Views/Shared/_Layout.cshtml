@@ -30,8 +30,11 @@
                             <h1 class="text-xl font-semibold text-gray-900">@ViewData["Title"]</h1>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <!-- Optional: Add notifications, search, etc. here -->
+                            <!-- Welcome text and Notifications partial inserted here -->
                             <span class="text-sm text-gray-600">Welcome, @User.Identity.Name!</span>
+
+                            @* Notifications partial inserted next to the user email/welcome text *@
+                            @await Html.PartialAsync("_NotificationsPartial")
                         </div>
                     </div>
                 </div>
@@ -143,6 +146,7 @@
     @if (User.Identity.IsAuthenticated)
     {
         <script src="~/js/messaging.js" asp-append-version="true"></script>
+        <script src="~/js/notifications.js" asp-append-version="true"></script>
     }
 
     @await RenderSectionAsync("Scripts", required: false)

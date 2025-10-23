@@ -1,0 +1,23 @@
+@model IEnumerable<CampusLearn.Models.Notification>
+
+@{
+    ViewData["Title"] = "All Notifications";
+}
+
+<div class="container mt-3">
+    <h3>All Notifications</h3>
+
+    <div class="list-group mt-3">
+        @foreach (var n in Model)
+        {
+            <a class="list-group-item list-group-item-action @(n.IsRead ? "text-muted" : "")" href="@n.Link">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">@n.Title</h5>
+                    <small class="text-muted">@n.CreatedAtUtc.ToLocalTime().ToShortTimeString()</small>
+                </div>
+                <p class="mb-1">@n.Message</p>
+                <small class="text-muted">@n.Type</small>
+            </a>
+        }
+    </div>
+</div>
