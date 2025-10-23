@@ -18,7 +18,7 @@
                 </div>
                 <input type="text"
                        id="userSearch"
-                       placeholder="Search users by name or email..."
+                       placeholder="Search users by full name or email..."
                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
             </div>
             <div id="searchResults" class="hidden absolute z-50 w-80 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"></div>
@@ -35,14 +35,14 @@
                         var userName = otherUser?.FullName ?? "Unknown User";
                         var userEmail = otherUser?.Email ?? "No email available";
                         var userInitial = !string.IsNullOrEmpty(userName) ? userName[0] : 'U';
+                        var userId = otherUser != null ? otherUser.Id.ToString() : "";
 
-                        <!-- In the conversation item loop -->
                         <div class="conversation-item p-4 border-b border-gray-100 hover:bg-white cursor-pointer transition-colors"
                              data-conversation-id="@conversation.Id"
-                             data-user-id="@(otherUser?.Id.ToString() ?? "")">
-                        </div>
-
-                        <div class="flex-shrink-0">
+                             data-user-id="@userId"
+                             data-user-fullname="@userName">
+                            <div class="flex items-center space-x-3">
+                                <div class="flex-shrink-0">
                                     <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
                                         @userInitial
                                     </div>
@@ -67,7 +67,8 @@
                                         </span>
                                     </div>
                                 }
-
+                            </div>
+                        </div>
                     }
                 }
                 else
@@ -137,13 +138,19 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Initializing messaging system...');
         initializeMessaging();
-        updateUnreadCounts();
         setupEventListeners();
+        startPeriodicRefresh();
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
     });
 
     let currentConnection = null;
     let currentConversationId = null;
     let currentReceiverId = null;
+    let allUsers = []; // Store all registered users
 
     function setupEventListeners() {
         // Conversation item clicks
@@ -152,7 +159,10 @@
             if (conversationItem) {
                 const conversationId = conversationItem.getAttribute('data-conversation-id');
                 const userId = conversationItem.getAttribute('data-user-id');
-                openConversation(conversationId, userId);
+                const userFullName = conversationItem.getAttribute('data-user-fullname');
+                if (conversationId && userId) {
+                    openConversation(conversationId, userId, userFullName);
+                }
             }
         });
 
@@ -172,10 +182,20 @@
             });
         }
 
-        // User search functionality
+        // User search functionality - using full names
         const userSearch = document.getElementById('userSearch');
         if (userSearch) {
-            userSearch.addEventListener('input', debounce(searchUsers, 300));
+            userSearch.addEventListener('input', debounce(handleUserSearch, 300));
+            userSearch.addEventListener('focus', function() {
+                const results = document.getElementById('searchResults');
+                if (allUsers.length > 0 || this.value.trim().length >= 2) {
+                    results.classList.remove('hidden');
+                    // If search box is empty but has focus, show all users
+                    if (this.value.trim().length === 0) {
+                        renderSearchResults(allUsers);
+                    }
+                }
+            });
         }
 
         // Close search results when clicking outside
@@ -194,33 +214,242 @@
             .withAutomaticReconnect()
             .build();
 
+        // Handle received messages
         currentConnection.on("ReceiveMessage", (message) => {
             console.log('Received message:', message);
+
+            // Update unread count immediately when receiving a new message
+            updateUnreadCounts();
+
             if (message.conversationId === currentConversationId) {
                 addMessageToChat(message, false);
                 scrollToBottom();
+
+                // If we're in the active conversation, mark as read
+                if (currentConversationId) {
+                    markConversationAsRead(currentConversationId);
+                }
+            } else {
+                // Show notification for new message in other conversation
+                showNewMessageNotification(message);
+                // Refresh conversations to show updated unread counts
+                loadConversations();
             }
-            updateUnreadCounts();
         });
 
+        // Handle sent message confirmation
         currentConnection.on("MessageSent", (message) => {
             console.log('Message sent:', message);
             addMessageToChat(message, true);
             scrollToBottom();
+            // Refresh conversations to update last message preview
+            loadConversations();
         });
 
+        // Handle user status changes
         currentConnection.on("UserStatusChanged", (userId, isOnline) => {
             console.log('User status changed:', userId, isOnline);
             if (userId === currentReceiverId) {
-                const statusElement = document.getElementById('chatUserStatus');
-                statusElement.textContent = isOnline ? 'Online' : 'Offline';
-                statusElement.className = isOnline ? 'text-xs text-green-500' : 'text-xs text-gray-500';
+                updateUserStatus(isOnline);
             }
+            updateUserOnlineStatus(userId, isOnline);
+        });
+
+        // Handle user search results
+        currentConnection.on("UserSearchResults", (users) => {
+            console.log('Received search results:', users);
+            renderSearchResults(users);
+        });
+
+        // Handle loaded registered users
+        currentConnection.on("RegisteredUsersLoaded", (users) => {
+            console.log('Received all registered users:', users);
+            allUsers = users;
+        });
+
+        // Handle user found by full name
+        currentConnection.on("UserFoundByFullName", (user) => {
+            console.log('User found by full name:', user);
+            startNewConversation(user.id, user.fullName);
+        });
+
+        // Handle user not found
+        currentConnection.on("UserNotFound", (message) => {
+            console.log('User not found:', message);
+            showSearchError(message);
+        });
+
+        // Handle search errors
+        currentConnection.on("SearchError", (errorMessage) => {
+            console.error('Search error:', errorMessage);
+            showSearchError(errorMessage);
+        });
+
+        // Handle connection events
+        currentConnection.onreconnecting(() => {
+            console.log('SignalR reconnecting...');
+        });
+
+        currentConnection.onreconnected(() => {
+            console.log('SignalR reconnected');
+            // Refresh data after reconnection
+            loadConversations();
+            updateUnreadCounts();
         });
 
         currentConnection.start()
-            .then(() => console.log('SignalR connected'))
+            .then(() => {
+                console.log('SignalR connected');
+                loadRegisteredUsers();
+                loadConversations();
+                updateUnreadCounts();
+            })
             .catch(err => console.error('SignalR connection error:', err));
+    }
+
+    function loadRegisteredUsers() {
+        if (currentConnection) {
+            currentConnection.invoke("GetRegisteredUsers")
+                .catch(err => console.error('Error loading registered users:', err));
+        }
+    }
+
+    function handleUserSearch(e) {
+        const query = e.target.value.trim();
+        const resultsContainer = document.getElementById('searchResults');
+
+        if (query.length === 0) {
+            renderSearchResults(allUsers);
+            resultsContainer.classList.remove('hidden');
+            return;
+        }
+
+        if (query.length < 2) {
+            resultsContainer.classList.add('hidden');
+            return;
+        }
+
+        console.log('Searching users with query:', query);
+
+        // Show loading state
+        resultsContainer.innerHTML = `
+            <div class="p-4 text-center text-gray-500">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                Searching users by name...
+            </div>`;
+        resultsContainer.classList.remove('hidden');
+
+        // Use SignalR to search users by full name
+        if (currentConnection) {
+            currentConnection.invoke("SearchUsers", query)
+                .catch(err => {
+                    console.error('Error invoking search:', err);
+                    showSearchError('Search failed');
+                });
+        }
+    }
+
+    function renderSearchResults(users) {
+        const container = document.getElementById('searchResults');
+
+        if (users && users.length > 0) {
+            let html = `
+                <div class="p-3 bg-gray-50 border-b border-gray-200 sticky top-0">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Users (${users.length})</span>
+                        <span class="text-xs text-gray-500">Click to start conversation</span>
+                    </div>
+                </div>`;
+
+            html += users.map(user => {
+                const onlineStatus = user.isOnline ?
+                    '<span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Online' :
+                    '<span class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>Offline';
+
+                const displayName = user.fullName || user.userName || 'Unknown User';
+                const displayEmail = user.email || 'No email';
+
+                return `
+                <div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 transition-colors group"
+                     onclick="startNewConversation('${user.id}', '${displayName.replace(/'/g, "\\'")}')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
+                                ${displayName[0].toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-900 text-sm">${displayName}</div>
+                                <div class="text-xs text-gray-600">${displayEmail}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex items-center text-xs text-gray-500">
+                                ${onlineStatus}
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full capitalize">
+                                ${(user.role || 'User').toLowerCase()}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-user-slash text-gray-400 text-xl mb-2"></i>
+                    <p class="text-sm">No users found</p>
+                    <p class="text-xs text-gray-400 mt-1">Try searching by full name or email</p>
+                </div>`;
+        }
+
+        container.classList.remove('hidden');
+    }
+
+    function updateUserOnlineStatus(userId, isOnline) {
+        // Update in allUsers array
+        const userIndex = allUsers.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+            allUsers[userIndex].isOnline = isOnline;
+        }
+
+        // Update in search results if visible
+        const searchResults = document.getElementById('searchResults');
+        if (!searchResults.classList.contains('hidden')) {
+            const userElements = searchResults.querySelectorAll('[onclick]');
+            userElements.forEach(element => {
+                if (element.getAttribute('onclick').includes(userId)) {
+                    const onlineStatusElement = element.querySelector('.flex.items-center.text-xs');
+                    if (onlineStatusElement) {
+                        onlineStatusElement.innerHTML = isOnline ?
+                            '<span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Online' :
+                            '<span class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>Offline';
+                    }
+                }
+            });
+        }
+    }
+
+    function showSearchError(message) {
+        const container = document.getElementById('searchResults');
+        container.innerHTML = `
+            <div class="p-4 text-center text-red-500">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span class="text-sm">${message}</span>
+            </div>`;
+        container.classList.remove('hidden');
+    }
+
+    function updateUserStatus(isOnline) {
+        const statusElement = document.getElementById('chatUserStatus');
+        if (isOnline) {
+            statusElement.innerHTML = '<span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>Online';
+            statusElement.className = 'text-xs text-green-600 flex items-center';
+        } else {
+            statusElement.innerHTML = '<span class="w-2 h-2 bg-gray-400 rounded-full mr-1"></span>Offline';
+            statusElement.className = 'text-xs text-gray-500 flex items-center';
+        }
     }
 
     function toggleMessaging() {
@@ -229,7 +458,10 @@
 
         if (isHidden) {
             panel.classList.remove('translate-x-full');
-            loadConversations();
+            if (currentConnection && currentConnection.state === 'Connected') {
+                loadConversations();
+                loadRegisteredUsers();
+            }
         } else {
             panel.classList.add('translate-x-full');
         }
@@ -275,13 +507,14 @@
                 const otherUser = conv.participants?.[0];
                 const userName = otherUser?.fullName || 'Unknown User';
                 const userEmail = otherUser?.email || 'No email available';
-                const userInitial = userName[0];
+                const userInitial = userName ? userName[0].toUpperCase() : 'U';
                 const userId = otherUser?.id || '';
 
                 return `
                 <div class="conversation-item p-4 border-b border-gray-100 hover:bg-white cursor-pointer transition-colors"
                      data-conversation-id="${conv.id}"
-                     data-user-id="${userId}">
+                     data-user-id="${userId}"
+                     data-user-fullname="${userName.replace(/"/g, '&quot;')}">
                     <div class="flex items-center space-x-3">
                         <div class="flex-shrink-0">
                             <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
@@ -324,8 +557,13 @@
         }
     }
 
-    async function openConversation(conversationId, receiverId) {
-        console.log('Opening conversation:', conversationId, 'with user:', receiverId);
+    async function openConversation(conversationId, receiverId, userFullName) {
+        console.log('Opening conversation:', conversationId, 'with user:', receiverId, userFullName);
+
+        if (!conversationId || !receiverId) {
+            console.error('Invalid conversation or user ID');
+            return;
+        }
 
         currentConversationId = conversationId;
         currentReceiverId = receiverId;
@@ -337,6 +575,12 @@
         const activeItem = document.querySelector(`[data-conversation-id="${conversationId}"]`);
         if (activeItem) {
             activeItem.classList.add('active', 'bg-blue-50');
+
+            // Remove unread badge from this conversation in the UI
+            const unreadBadge = activeItem.querySelector('.bg-red-500');
+            if (unreadBadge) {
+                unreadBadge.remove();
+            }
         }
 
         // Show chat interface
@@ -347,14 +591,27 @@
         document.getElementById('messageInput').disabled = false;
         document.getElementById('sendMessage').disabled = false;
 
-        // Set chat header
-        const userName = activeItem ? activeItem.querySelector('h4').textContent : 'Unknown User';
-        document.getElementById('chatUserName').textContent = userName;
+        // Set chat header using the full name
+        document.getElementById('chatUserName').textContent = userFullName || 'Unknown User';
+
+        // Check online status
+        if (currentConnection) {
+            currentConnection.invoke("GetOnlineUsers")
+                .then(onlineUsers => {
+                    const isOnline = onlineUsers.includes(receiverId);
+                    updateUserStatus(isOnline);
+                })
+                .catch(err => console.error('Error getting online users:', err));
+        }
 
         // Load messages
         await loadMessages(conversationId);
 
-        // Mark as read
+        // Mark as read immediately when opening conversation
+        await markConversationAsRead(conversationId);
+    }
+
+    async function markConversationAsRead(conversationId) {
         try {
             await fetch(`/api/messaging/conversations/${conversationId}/read`, {
                 method: 'POST',
@@ -362,9 +619,10 @@
                     'Content-Type': 'application/json'
                 }
             });
+            // Update the unread count after marking as read
             updateUnreadCounts();
         } catch (error) {
-            console.error('Error marking messages as read:', error);
+            console.error('Error marking conversation as read:', error);
         }
     }
 
@@ -453,73 +711,35 @@
 
     async function updateUnreadCounts() {
         try {
+            console.log('Updating unread message count...');
             const response = await fetch('/api/messaging/unread-count');
             if (!response.ok) throw new Error('Failed to load unread count');
 
             const data = await response.json();
+            console.log('Unread count data:', data);
+
             const badge = document.getElementById('unreadMessagesBadge');
             if (badge) {
                 if (data.count > 0) {
-                    badge.textContent = data.count;
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
                     badge.classList.remove('hidden');
+                    // Use Tailwind's built-in animation instead of custom keyframes
+                    badge.classList.add('animate-ping');
+
+                    // Remove animation after 2 seconds
+                    setTimeout(() => {
+                        badge.classList.remove('animate-ping');
+                    }, 2000);
                 } else {
                     badge.classList.add('hidden');
+                    badge.classList.remove('animate-ping');
                 }
+            } else {
+                console.warn('Unread messages badge element not found');
             }
         } catch (error) {
             console.error('Error updating unread counts:', error);
         }
-    }
-
-    async function searchUsers(e) {
-        const query = e.target.value.trim();
-        const resultsContainer = document.getElementById('searchResults');
-
-        if (query.length < 2) {
-            resultsContainer.classList.add('hidden');
-            return;
-        }
-
-        try {
-            console.log('Searching users with query:', query);
-            const response = await fetch(`/api/messaging/search-users?query=${encodeURIComponent(query)}`);
-            if (!response.ok) throw new Error('Search failed');
-
-            const users = await response.json();
-            console.log('Search results:', users);
-            renderSearchResults(users);
-        } catch (error) {
-            console.error('Error searching users:', error);
-            showError('Search failed');
-        }
-    }
-
-    function renderSearchResults(users) {
-        const container = document.getElementById('searchResults');
-        if (users && users.length > 0) {
-            container.innerHTML = users.map(user => `
-                <div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 transition-colors"
-                     onclick="startNewConversation('${user.id}', '${user.fullName.replace(/'/g, "\\'")}')">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                            ${user.fullName[0]}
-                        </div>
-                        <div>
-                            <div class="font-semibold text-gray-900 text-sm">${user.fullName}</div>
-                            <div class="text-xs text-gray-600">${user.email} • ${user.role}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            container.innerHTML = `
-                <div class="p-4 text-center text-gray-500">
-                    <i class="fas fa-user-slash text-gray-400 mb-2"></i>
-                    <p class="text-sm">No users found</p>
-                </div>`;
-        }
-
-        container.classList.remove('hidden');
     }
 
     function startNewConversation(userId, userName) {
@@ -555,12 +775,37 @@
 
         // Set chat header
         document.getElementById('chatUserName').textContent = userName;
-        document.getElementById('chatUserStatus').textContent = 'Online';
-        document.getElementById('chatUserStatus').className = 'text-xs text-green-500';
+        updateUserStatus(false); // Default to offline until we know
+
+        // Check online status for new conversation
+        if (currentConnection) {
+            currentConnection.invoke("GetOnlineUsers")
+                .then(onlineUsers => {
+                    const isOnline = onlineUsers.includes(userId);
+                    updateUserStatus(isOnline);
+                })
+                .catch(err => console.error('Error getting online users:', err));
+        }
+    }
+
+    function showNewMessageNotification(message) {
+        console.log('New message received in another conversation:', message);
+
+        // Optional: Show a small notification
+        if (Notification.permission === 'granted') {
+            new Notification('New Message', {
+                body: `You have a new message`,
+                icon: '/favicon.ico'
+            });
+        }
+    }
+
+    function startPeriodicRefresh() {
+        // Update unread counts every 30 seconds
+        setInterval(updateUnreadCounts, 30000);
     }
 
     function showError(message) {
-        // You can implement a toast notification here
         console.error('Error:', message);
     }
 

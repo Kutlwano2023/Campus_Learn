@@ -24,21 +24,102 @@ namespace CampusLearn.Services
         }
 
         // User methods
+        // Enhanced SearchUsers method in MongoService
         public async Task<List<Users>> SearchUsers(string searchTerm, string currentUserId)
         {
-            var filter = Builders<Users>.Filter.And(
-                Builders<Users>.Filter.Ne(u => u.Id.ToString(), currentUserId),
-                Builders<Users>.Filter.Or(
-                    Builders<Users>.Filter.Regex(u => u.FullName, new BsonRegularExpression(searchTerm, "i")),
-                    Builders<Users>.Filter.Regex(u => u.Email, new BsonRegularExpression(searchTerm, "i"))
-                )
-            );
+            try
+            {
+                if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    // If no search term, return all users except current user
+                    return await GetAllUsersAsync(currentUserId);
+                }
 
-            return await _users.Find(filter)
-                .Limit(10)
-                .ToListAsync();
+                // Prioritize full name search, then email, then username
+                var filter = Builders<Users>.Filter.And(
+                    Builders<Users>.Filter.Ne(u => u.Id.ToString(), currentUserId),
+                    Builders<Users>.Filter.Or(
+                        Builders<Users>.Filter.Regex(u => u.FullName, new BsonRegularExpression(searchTerm, "i")),
+                        Builders<Users>.Filter.Regex(u => u.Email, new BsonRegularExpression(searchTerm, "i")),
+                        Builders<Users>.Filter.Regex(u => u.UserName, new BsonRegularExpression(searchTerm, "i"))
+                    )
+                );
+
+                var users = await _users.Find(filter)
+                    .SortBy(u => u.FullName) // Sort by full name
+                    .Limit(20)
+                    .ToListAsync();
+
+                // Prioritize results that match full name at the beginning
+                return users.OrderByDescending(u =>
+                    u.FullName?.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+                    .ThenBy(u => u.FullName)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in SearchUsers: {ex.Message}");
+                return new List<Users>();
+            }
         }
 
+        // Add method to get user by full name
+        public async Task<Users> GetUserByFullNameAsync(string fullName)
+        {
+            try
+            {
+                return await _users.Find(u => u.FullName == fullName).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting user by full name: {ex.Message}");
+                return null;
+            }
+        }
+
+        // Enhanced method to get conversations with full user details
+        public async Task<List<Conversation>> GetUserConversationsAsync(string userId)
+        {
+            try
+            {
+                var filter = Builders<Conversation>.Filter.AnyEq(c => c.ParticipantIds, userId);
+                var conversations = await _conversations.Find(filter)
+                    .SortByDescending(c => c.LastMessageAt)
+                    .ToListAsync();
+
+                // Populate participant details with full names
+                foreach (var conversation in conversations)
+                {
+                    var otherParticipantId = conversation.ParticipantIds.FirstOrDefault(id => id != userId);
+                    if (!string.IsNullOrEmpty(otherParticipantId))
+                    {
+                        var otherUser = await GetUserByIdAsync(otherParticipantId);
+                        if (otherUser != null)
+                        {
+                            conversation.Participants = new List<Users> { otherUser };
+                        }
+                        else
+                        {
+                            // Create a placeholder with the ID as reference
+                            conversation.Participants = new List<Users> {
+                        new Users {
+                            Id = Guid.Parse(otherParticipantId),
+                            FullName = "Unknown User",
+                            Email = "unknown@example.com"
+                        }
+                    };
+                        }
+                    }
+                }
+
+                return conversations;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUserConversationsAsync: {ex.Message}");
+                return new List<Conversation>();
+            }
+        }
         public async Task<Users> GetUserByIdAsync(string userId)
         {
             return await _users.Find(u => u.Id.ToString() == userId).FirstOrDefaultAsync();
@@ -74,51 +155,26 @@ namespace CampusLearn.Services
             return conversation;
         }
 
-        public async Task<List<Conversation>> GetUserConversationsAsync(string userId)
+        // Add these methods to your MongoService class
+        public async Task<List<Users>> GetAllUsersAsync(string excludeUserId = null)
         {
             try
             {
-                var filter = Builders<Conversation>.Filter.AnyEq(c => c.ParticipantIds, userId);
-                var conversations = await _conversations.Find(filter)
-                    .SortByDescending(c => c.LastMessageAt)
+                var filter = string.IsNullOrEmpty(excludeUserId)
+                    ? Builders<Users>.Filter.Empty
+                    : Builders<Users>.Filter.Ne(u => u.Id.ToString(), excludeUserId);
+
+                return await _users.Find(filter)
+                    .SortBy(u => u.FullName)
                     .ToListAsync();
-
-                // Populate participant details properly
-                foreach (var conversation in conversations)
-                {
-                    var otherParticipantId = conversation.ParticipantIds.FirstOrDefault(id => id != userId);
-                    if (!string.IsNullOrEmpty(otherParticipantId))
-                    {
-                        var otherUser = await GetUserByIdAsync(otherParticipantId);
-                        if (otherUser != null)
-                        {
-                            conversation.Participants = new List<Users> { otherUser };
-                        }
-                        else
-                        {
-                            // Create a placeholder user if not found
-                            conversation.Participants = new List<Users> {
-                        new Users { FullName = "Unknown User", Email = "unknown@example.com" }
-                    };
-                        }
-                    }
-                    else
-                    {
-                        // Handle case where there's no other participant
-                        conversation.Participants = new List<Users> {
-                    new Users { FullName = "Unknown User", Email = "unknown@example.com" }
-                };
-                    }
-                }
-
-                return conversations;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in GetUserConversationsAsync: {ex.Message}");
-                return new List<Conversation>();
+                Console.WriteLine($"Error getting all users: {ex.Message}");
+                return new List<Users>();
             }
         }
+
         public async Task<List<Message>> GetConversationMessagesAsync(string conversationId, int limit = 50)
         {
             return await _messages.Find(m => m.ConversationId == conversationId)
