@@ -1,6 +1,6 @@
-﻿﻿@{
-ViewData["Title"] = "Schedule Session";
-Layout = "_Layout";
+﻿@{
+    ViewData["Title"] = "Schedule Session";
+    Layout = "_Layout";
 }
 
 <link rel="stylesheet" href="~/css/schedule.css" asp-append-version="true" />
@@ -50,7 +50,7 @@ Layout = "_Layout";
                             <div class="form-field">
                                 <label class="form-label">Session Type</label>
                                 <div class="form-select-wrapper">
-                                    <select class="form-select" name="SessionType" required>
+                                    <select class="form-select" name="SessionType" id="sessionType" required>
                                         <option value="">Select type</option>
                                         <option value="Online">Online</option>
                                         <option value="InPerson">In Person</option>
@@ -117,7 +117,7 @@ Layout = "_Layout";
                                 </div>
                                 <div class="tutor-availability availability-available">Available Today</div>
                             </div>
-                            <button class="btn btn-dark btn-block" data-tutor-id="1">
+                            <button class="btn btn-dark btn-block" data-tutor-id="1" data-tutor-name="Alice Johnson">
                                 <i class="fas fa-calendar-plus"></i>Book Session
                             </button>
                         </article>
@@ -135,7 +135,7 @@ Layout = "_Layout";
                                 </div>
                                 <div class="tutor-availability availability-soon">Available Tomorrow</div>
                             </div>
-                            <button class="btn btn-dark btn-block" data-tutor-id="2">
+                            <button class="btn btn-dark btn-block" data-tutor-id="2" data-tutor-name="Bob Smith">
                                 <i class="fas fa-calendar-plus"></i>Book Session
                             </button>
                         </article>
@@ -153,7 +153,7 @@ Layout = "_Layout";
                                 </div>
                                 <div class="tutor-availability availability-soon">Available This Week</div>
                             </div>
-                            <button class="btn btn-dark btn-block" data-tutor-id="3">
+                            <button class="btn btn-dark btn-block" data-tutor-id="3" data-tutor-name="Carol Davis">
                                 <i class="fas fa-calendar-plus"></i>Book Session
                             </button>
                         </article>
@@ -171,7 +171,7 @@ Layout = "_Layout";
                                 </div>
                                 <div class="tutor-availability availability-available">Available Today</div>
                             </div>
-                            <button class="btn btn-dark btn-block" data-tutor-id="4">
+                            <button class="btn btn-dark btn-block" data-tutor-id="4" data-tutor-name="David Kim">
                                 <i class="fas fa-calendar-plus"></i>Book Session
                             </button>
                         </article>
@@ -215,8 +215,13 @@ Layout = "_Layout";
                                 </div>
                             </div>
                             <div class="session-actions">
-                                <button class="btn btn-sm">Reschedule</button>
-                                <button class="btn btn-primary btn-sm">Join</button>
+                                <button class="btn btn-sm btn-outline-secondary">Reschedule</button>
+                                <button class="btn btn-primary btn-sm join-session-btn"
+                                        data-session-id="1"
+                                        data-tutor-name="Alice Johnson"
+                                        data-session-title="JavaScript Advanced Concepts">
+                                    Join Session
+                                </button>
                             </div>
                         </article>
 
@@ -239,10 +244,39 @@ Layout = "_Layout";
                                 </div>
                             </div>
                             <div class="session-actions">
-                                <button class="btn btn-sm">Reschedule</button>
-                                <button class="btn btn-primary btn-sm">Join</button>
+                                <button class="btn btn-sm btn-outline-secondary">Reschedule</button>
+                                <button class="btn btn-primary btn-sm" disabled>Join Session</button>
                             </div>
                         </article>
+                    </div>
+                </section>
+
+                <!-- Quick Join Session Card -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="title-icon bg-orange-100 text-orange-600">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div>
+                                <h2>Quick Join Session</h2>
+                                <p class="section-description">Join a video session directly</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-join-form">
+                        <div class="form-field">
+                            <label class="form-label">Room Name</label>
+                            <input type="text" class="form-input" id="quickRoomName" placeholder="Enter room name" />
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Your Display Name</label>
+                            <input type="text" class="form-input" id="quickDisplayName" placeholder="Your name" value="@User.Identity.Name" />
+                        </div>
+                        <button type="button" class="btn btn-warning btn-block" id="quickJoinBtn">
+                            <i class="fas fa-rocket"></i>Quick Join
+                        </button>
                     </div>
                 </section>
 
@@ -280,6 +314,230 @@ Layout = "_Layout";
     </main>
 </div>
 
+<!-- Video Call Modal -->
+<div class="modal fade" id="videoCallModal" tabindex="-1" aria-labelledby="videoCallModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="videoCallModalLabel">Join Session</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="jitsi-container" style="width: 100%; height: 600px; background: #000;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Leave Session</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .quick-join-form {
+            padding: 1rem 0;
+        }
+
+        .join-session-btn {
+            min-width: 100px;
+        }
+
+        #jitsi-container {
+            border-radius: 0.375rem;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+            .session-actions .btn {
+                flex: 1;
+            }
+    </style>
+}
+
 @section Scripts {
+    <script src="https://meet.jit.si/external_api.js"></script>
     <script src="~/js/schedule.js" asp-append-version="true"></script>
+
+    <script>
+        let jitsiApi = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quick join button
+            document.getElementById('quickJoinBtn').addEventListener('click', function() {
+                const roomName = document.getElementById('quickRoomName').value.trim();
+                const displayName = document.getElementById('quickDisplayName').value.trim() || '@User.Identity.Name';
+
+                if (!roomName) {
+                    alert('Please enter a room name');
+                    return;
+                }
+
+                startJitsiMeeting(roomName, displayName, 'Quick Session');
+            });
+
+            // Join session buttons for upcoming sessions
+            document.querySelectorAll('.join-session-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const sessionId = this.getAttribute('data-session-id');
+                    const tutorName = this.getAttribute('data-tutor-name');
+                    const sessionTitle = this.getAttribute('data-session-title');
+                    const displayName = '@User.Identity.Name';
+
+                    // Generate a room name based on session details
+                    const roomName = `CampusLearn_${sessionId}_${tutorName.replace(/\s+/g, '')}`;
+
+                    startJitsiMeeting(roomName, displayName, sessionTitle);
+                });
+            });
+
+            // Tutor booking buttons
+            document.querySelectorAll('.tutor-card .btn').forEach(button => {
+                if (button.textContent.includes('Book Session')) {
+                    button.addEventListener('click', function() {
+                        const tutorId = this.getAttribute('data-tutor-id');
+                        const tutorName = this.getAttribute('data-tutor-name');
+
+                        // Auto-fill the form with tutor information
+                        document.querySelector('select[name="Subject"]').focus();
+
+                        // Show a confirmation message
+                        showNotification(`Booking session with ${tutorName}. Please fill in the session details.`, 'info');
+                    });
+                }
+            });
+        });
+
+        function startJitsiMeeting(roomName, displayName, sessionTitle) {
+            // Close existing meeting if any
+            if (jitsiApi) {
+                jitsiApi.dispose();
+            }
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('videoCallModal'));
+            modal.show();
+
+            // Update modal title
+            document.getElementById('videoCallModalLabel').textContent = `Session: ${sessionTitle}`;
+
+            // Clear previous container
+            const container = document.getElementById('jitsi-container');
+            container.innerHTML = '';
+
+            const domain = "meet.jit.si";
+            const options = {
+                roomName: roomName,
+                width: "100%",
+                height: 600,
+                parentNode: container,
+                userInfo: {
+                    displayName: displayName,
+                    email: '@User.Identity.Name'
+                },
+                configOverwrite: {
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: false,
+                    prejoinPageEnabled: false,
+                    disableModeratorIndicator: false,
+                    startScreenSharing: false,
+                    enableEmailInStats: false,
+                    enableWelcomePage: false,
+                    enableClosePage: false,
+                    defaultLanguage: 'en',
+                    disableThirdPartyRequests: true
+                },
+                interfaceConfigOverwrite: {
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'closedcaptions', 'desktop', 'embedmeeting',
+                        'fullscreen', 'fodeviceselection', 'hangup', 'profile', 'chat',
+                        'recording', 'livestreaming', 'etherpad', 'sharedvideo', 'settings',
+                        'raisehand', 'videoquality', 'filmstrip', 'invite', 'feedback',
+                        'stats', 'shortcuts', 'tileview', 'videobackgroundblur', 'download',
+                        'help', 'mute-everyone', 'security'
+                    ],
+                    SETTINGS_SECTIONS: ['devices', 'language', 'moderator', 'profile', 'calendar'],
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    SHOW_BRAND_WATERMARK: false,
+                    BRAND_WATERMARK_LINK: '',
+                    SHOW_POWERED_BY: false,
+                    SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+                    SHOW_CHROME_EXTENSION_BANNER: false
+                },
+                onload: function() {
+                    console.log('Jitsi Meet API loaded');
+                }
+            };
+
+            try {
+                jitsiApi = new JitsiMeetExternalAPI(domain, options);
+
+                // Handle API events
+                jitsiApi.addEventListener('videoConferenceJoined', () => {
+                    console.log('Successfully joined the conference');
+                    showNotification('Successfully joined the session!', 'success');
+                });
+
+                jitsiApi.addEventListener('videoConferenceLeft', () => {
+                    console.log('Left the conference');
+                    showNotification('You left the session', 'info');
+                    if (jitsiApi) {
+                        jitsiApi.dispose();
+                        jitsiApi = null;
+                    }
+                });
+
+                jitsiApi.addEventListener('participantJoined', (participant) => {
+                    console.log('Participant joined:', participant);
+                    showNotification(`${participant.displayName} joined the session`, 'info');
+                });
+
+                jitsiApi.addEventListener('participantLeft', (participant) => {
+                    console.log('Participant left:', participant);
+                    showNotification(`${participant.displayName} left the session`, 'warning');
+                });
+
+            } catch (error) {
+                console.error('Error starting Jitsi meeting:', error);
+                showNotification('Error starting video session. Please try again.', 'error');
+                modal.hide();
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // You can replace this with a better notification system like Toastr
+            const alertClass = type === 'error' ? 'alert-danger' :
+                             type === 'success' ? 'alert-success' :
+                             type === 'warning' ? 'alert-warning' : 'alert-info';
+
+            const notification = document.createElement('div');
+            notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Clean up when modal is closed
+        document.getElementById('videoCallModal').addEventListener('hidden.bs.modal', function() {
+            if (jitsiApi) {
+                jitsiApi.dispose();
+                jitsiApi = null;
+            }
+        });
+    </script>
 }

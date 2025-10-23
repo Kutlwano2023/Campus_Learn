@@ -33,7 +33,7 @@ namespace CampusLearn.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
-            var conversations = await _mongoService.GetUserConversations(currentUser.Id.ToString());
+            var conversations = await _mongoService.GetUserConversationsAsync(currentUser.Id.ToString());
             return Ok(conversations);
         }
 
@@ -58,7 +58,7 @@ namespace CampusLearn.Controllers
         [HttpGet("user-info/{userId}")]
         public async Task<IActionResult> GetUserInfo(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _mongoService.GetUserByIdAsync(userId);
             if (user == null) return NotFound();
 
             return Ok(new
@@ -79,6 +79,21 @@ namespace CampusLearn.Controllers
             return Ok(messages);
         }
 
+        [HttpGet("conversations/{conversationId}/messages")]
+        public async Task<IActionResult> GetConversationMessages(string conversationId)
+        {
+            var messages = await _mongoService.GetConversationMessagesAsync(conversationId);
+            return Ok(messages.OrderBy(m => m.SentAt));
+        }
+
+        [HttpPost("conversations/{conversationId}/read")]
+        public async Task<IActionResult> MarkConversationAsRead(string conversationId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            await _mongoService.MarkMessagesAsReadAsync(conversationId, currentUser.Id.ToString());
+            return Ok();
+        }
+
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
         {
@@ -93,23 +108,15 @@ namespace CampusLearn.Controllers
                 IsRead = false
             };
 
-            await _mongoService.SaveMessage(message);
-            return Ok();
-        }
-
-        [HttpPost("mark-read/{userId}")]
-        public async Task<IActionResult> MarkAsRead(string userId)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            await _mongoService.MarkMessagesAsRead(currentUser.Id.ToString(), userId);
-            return Ok();
+            await _mongoService.SaveMessageAsync(message);
+            return Ok(new { success = true });
         }
 
         [HttpGet("unread-count")]
         public async Task<IActionResult> GetUnreadCount()
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            var count = await _mongoService.GetUnreadMessageCount(currentUser.Id.ToString());
+            var count = await _mongoService.GetUnreadMessageCountAsync(currentUser.Id.ToString());
             return Ok(new { count });
         }
     }

@@ -70,6 +70,14 @@
                 <i class="fas fa-comments me-2 text-blue-600"></i>
                 <span>Forum</span>
             </a>
+
+            <!-- Messaging -->
+            <a href="javascript:void(0)" onclick="toggleMessaging()"
+               class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                <i class="fas fa-comments me-2 text-blue-600"></i>
+                <span>Messages</span>
+                <span class="ml-auto px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full hidden" id="unreadMessagesBadge">0</span>
+            </a>
         </nav>
 
         <!-- User Menu at Bottom -->
@@ -159,4 +167,5 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    @await Component.InvokeAsync("Messaging")
 }

@@ -26,9 +26,10 @@ namespace CampusLearn.Controllers
         {
             try
             {
-                var conversations = await _mongoService.ChatConversations.Find(_ => true).ToListAsync();
-                var messages = await _mongoService.ChatMessages.Find(_ => true).ToListAsync();
-                var users = await _mongoService.Users.Find(_ => true).ToListAsync();
+                // Use the correct collection names from MongoService
+                var conversations = await _mongoService.ConversationsCollection.Find(_ => true).ToListAsync();
+                var messages = await _mongoService.MessagesCollection.Find(_ => true).ToListAsync();
+                var users = await _mongoService.UsersCollection.Find(_ => true).ToListAsync();
 
                 return Ok(new
                 {
@@ -37,15 +38,14 @@ namespace CampusLearn.Controllers
                     TotalUsers = users.Count,
                     Conversations = conversations.Select(c => new
                     {
-                        c.ConversationId,
-                        c.Title,
-                        c.UserId,
-                        c.ConversationType,
-                        c.ChatbaseChatId,
-                        c.Status,
-                        MessageCount = messages.Count(m => m.ConversationId == c.ConversationId),
-                        LastUpdated = c.UpdatedAt,
-                        Created = c.CreatedAt
+                        c.Id,
+                        ParticipantIds = c.ParticipantIds,
+                        LastMessageAt = c.LastMessageAt,
+                        LastMessagePreview = c.LastMessagePreview,
+                        UnreadCount = c.UnreadCount,
+                        CreatedAt = c.CreatedAt,
+                        MessageCount = messages.Count(m => m.ConversationId == c.Id),
+                        Participants = c.Participants?.Select(p => new { p.Id, p.FullName, p.Email })
                     })
                 });
             }
@@ -60,9 +60,10 @@ namespace CampusLearn.Controllers
         {
             try
             {
-                var usersCount = await _mongoService.Users.CountDocumentsAsync(_ => true);
-                var conversationsCount = await _mongoService.ChatConversations.CountDocumentsAsync(_ => true);
-                var messagesCount = await _mongoService.ChatMessages.CountDocumentsAsync(_ => true);
+                var usersCount = await _mongoService.UsersCollection.CountDocumentsAsync(_ => true);
+                var conversationsCount = await _mongoService.ConversationsCollection.CountDocumentsAsync(_ => true);
+                var messagesCount = await _mongoService.MessagesCollection.CountDocumentsAsync(_ => true);
+                var resourcesCount = await _mongoService.Resources.CountDocumentsAsync(_ => true);
 
                 return Ok(new
                 {
@@ -70,6 +71,7 @@ namespace CampusLearn.Controllers
                     UsersCount = usersCount,
                     ConversationsCount = conversationsCount,
                     MessagesCount = messagesCount,
+                    ResourcesCount = resourcesCount,
                     Status = "MongoDB is working correctly"
                 });
             }
@@ -88,7 +90,7 @@ namespace CampusLearn.Controllers
         {
             try
             {
-                var databaseStatus = await _mongoService.Users.Find(_ => true).AnyAsync();
+                var databaseStatus = await _mongoService.UsersCollection.Find(_ => true).AnyAsync();
                 var chatbaseConfig = _configuration.GetSection("ChatBase");
                 var hasChatbaseConfig = !string.IsNullOrEmpty(chatbaseConfig["ApiKey"]);
 
@@ -103,6 +105,13 @@ namespace CampusLearn.Controllers
                         Database = true,
                         ChatService = _chatService != null,
                         Configuration = true
+                    },
+                    Collections = new
+                    {
+                        Users = true,
+                        Conversations = true,
+                        Messages = true,
+                        Resources = true
                     }
                 };
 
@@ -116,6 +125,74 @@ namespace CampusLearn.Controllers
                     Timestamp = DateTime.UtcNow,
                     Error = ex.Message
                 });
+            }
+        }
+
+        [HttpGet("user-conversations/{userId}")]
+        public async Task<IActionResult> GetUserConversations(string userId)
+        {
+            try
+            {
+                var conversations = await _mongoService.GetUserConversationsAsync(userId);
+                var messages = await _mongoService.MessagesCollection.Find(_ => true).ToListAsync();
+
+                return Ok(new
+                {
+                    UserId = userId,
+                    Conversations = conversations.Select(c => new
+                    {
+                        ConversationId = c.Id,
+                        Participants = c.Participants?.Select(p => new { p.Id, p.FullName, p.Email }),
+                        LastMessage = c.LastMessagePreview,
+                        LastMessageAt = c.LastMessageAt,
+                        UnreadCount = c.UnreadCount,
+                        TotalMessages = messages.Count(m => m.ConversationId == c.Id)
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("recent-messages")]
+        public async Task<IActionResult> GetRecentMessages(int limit = 20)
+        {
+            try
+            {
+                var messages = await _mongoService.MessagesCollection
+                    .Find(_ => true)
+                    .SortByDescending(m => m.SentAt)
+                    .Limit(limit)
+                    .ToListAsync();
+
+                // Get user details for each message
+                var userIds = messages.SelectMany(m => new[] { m.SenderId, m.ReceiverId }).Distinct().ToList();
+                var users = await _mongoService.UsersCollection
+                    .Find(u => userIds.Contains(u.Id.ToString()))
+                    .ToListAsync();
+
+                var userDict = users.ToDictionary(u => u.Id.ToString(), u => u);
+
+                return Ok(new
+                {
+                    TotalMessages = messages.Count,
+                    Messages = messages.Select(m => new
+                    {
+                        m.Id,
+                        m.Content,
+                        m.SentAt,
+                        m.IsRead,
+                        Sender = userDict.ContainsKey(m.SenderId) ? new { userDict[m.SenderId].FullName, userDict[m.SenderId].Email } : null,
+                        Receiver = userDict.ContainsKey(m.ReceiverId) ? new { userDict[m.ReceiverId].FullName, userDict[m.ReceiverId].Email } : null,
+                        m.ConversationId
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
             }
         }
     }

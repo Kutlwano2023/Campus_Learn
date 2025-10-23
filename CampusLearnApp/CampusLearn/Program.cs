@@ -103,11 +103,12 @@ using (var scope = app.Services.CreateScope())
     var mongoService = scope.ServiceProvider.GetRequiredService<MongoService>();
     try
     {
-        var usersCount = await mongoService.Users.CountDocumentsAsync(Builders<Users>.Filter.Empty);
+        // Use UsersCollection instead of Users
+        var usersCount = await mongoService.UsersCollection.CountDocumentsAsync(Builders<Users>.Filter.Empty);
         Console.WriteLine($"MongoDB connection successful. Users in database: {usersCount}");
 
         // Ensure messages collection exists and create indexes
-        var database = mongoService.Users.Database;
+        var database = mongoService.UsersCollection.Database;
         var messagesCollection = database.GetCollection<Message>("messages");
 
         // Create indexes for better performance
@@ -137,10 +138,3 @@ app.MapControllerRoute(
 
 app.Run();
 
-//Contributors
-//Magane Letsoalo (601101) 
-//Reagile Motsepe (600665)
-//Yanga Mazibuko (600459)
-//Vunene Khoza (600676)
-//Onalerona Lefoka (600453)
-//Kutlwano Thaga (601349)

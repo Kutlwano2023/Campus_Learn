@@ -1,137 +1,248 @@
-﻿using CampusLearn.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using System;
+using MongoDB.Bson;
+using CampusLearn.Models;
 
 namespace CampusLearn.Services
 {
     public class MongoService
     {
-        private readonly IMongoDatabase _db;
-        private readonly IMongoCollection<Message> _messagesCollection;
-        private readonly UserManager<Users> _userManager;
+        private readonly IMongoCollection<Users> _users;
+        private readonly IMongoCollection<Message> _messages;
+        private readonly IMongoCollection<Conversation> _conversations;
+        private readonly IMongoCollection<Resource> _resources;
 
-        public MongoService(IOptions<MongoDBSettings> settings, UserManager<Users> userManager)
+        public MongoService(IOptions<MongoDBSettings> settings)
         {
             var client = new MongoClient(settings.Value.ConnectionString);
-            _db = client.GetDatabase(settings.Value.DatabaseName);
-            _messagesCollection = _db.GetCollection<Message>("messages");
-            _userManager = userManager;
+            var database = client.GetDatabase(settings.Value.DatabaseName);
+
+            _users = database.GetCollection<Users>("users");
+            _messages = database.GetCollection<Message>("messages");
+            _conversations = database.GetCollection<Conversation>("conversations");
+            _resources = database.GetCollection<Resource>("resources"); // Added this line
         }
 
-        public async Task<List<Conversation>> GetUserConversations(string userId)
+        // User methods
+        public async Task<List<Users>> SearchUsers(string searchTerm, string currentUserId)
         {
-            var messages = await _messagesCollection
-                .Find(m => m.SenderId == userId || m.ReceiverId == userId)
-                .SortByDescending(m => m.SentAt)
+            var filter = Builders<Users>.Filter.And(
+                Builders<Users>.Filter.Ne(u => u.Id.ToString(), currentUserId),
+                Builders<Users>.Filter.Or(
+                    Builders<Users>.Filter.Regex(u => u.FullName, new BsonRegularExpression(searchTerm, "i")),
+                    Builders<Users>.Filter.Regex(u => u.Email, new BsonRegularExpression(searchTerm, "i"))
+                )
+            );
+
+            return await _users.Find(filter)
+                .Limit(10)
                 .ToListAsync();
+        }
 
-            var conversationDict = new Dictionary<string, Conversation>();
+        public async Task<Users> GetUserByIdAsync(string userId)
+        {
+            return await _users.Find(u => u.Id.ToString() == userId).FirstOrDefaultAsync();
+        }
 
-            foreach (var message in messages)
+        public async Task<Users> GetUserByEmailAsync(string email)
+        {
+            return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+        }
+
+        // Conversation methods
+        public async Task<Conversation> GetOrCreateConversationAsync(string user1Id, string user2Id)
+        {
+            var participants = new List<string> { user1Id, user2Id }.OrderBy(id => id).ToList();
+            var filter = Builders<Conversation>.Filter.All(c => c.ParticipantIds, participants);
+
+            var conversation = await _conversations.Find(filter).FirstOrDefaultAsync();
+
+            if (conversation == null)
             {
-                var otherUserId = message.SenderId == userId ? message.ReceiverId : message.SenderId;
-
-                if (!conversationDict.ContainsKey(otherUserId))
+                conversation = new Conversation
                 {
-                    var otherUser = await _userManager.FindByIdAsync(otherUserId);
-                    conversationDict[otherUserId] = new Conversation
-                    {
-                        OtherUserId = otherUserId,
-                        OtherUserName = otherUser?.FullName ?? "Unknown User",
-                        LastMessage = message.Content,
-                        LastMessageTime = message.SentAt,
-                        UnreadCount = await GetUnreadCountForUser(userId, otherUserId)
-                    };
-                }
+                    ParticipantIds = participants,
+                    CreatedAt = DateTime.UtcNow,
+                    LastMessageAt = DateTime.UtcNow,
+                    LastMessagePreview = "Conversation started",
+                    UnreadCount = 0
+                };
+
+                await _conversations.InsertOneAsync(conversation);
             }
 
-            return conversationDict.Values
-                .OrderByDescending(c => c.LastMessageTime)
-                .ToList();
+            return conversation;
         }
 
-        private async Task<int> GetUnreadCountForUser(string userId, string otherUserId)
+        public async Task<List<Conversation>> GetUserConversationsAsync(string userId)
         {
-            return (int)await _messagesCollection
-                .CountDocumentsAsync(m => m.ReceiverId == userId &&
-                                        m.SenderId == otherUserId &&
-                                        !m.IsRead);
+            try
+            {
+                var filter = Builders<Conversation>.Filter.AnyEq(c => c.ParticipantIds, userId);
+                var conversations = await _conversations.Find(filter)
+                    .SortByDescending(c => c.LastMessageAt)
+                    .ToListAsync();
+
+                // Populate participant details properly
+                foreach (var conversation in conversations)
+                {
+                    var otherParticipantId = conversation.ParticipantIds.FirstOrDefault(id => id != userId);
+                    if (!string.IsNullOrEmpty(otherParticipantId))
+                    {
+                        var otherUser = await GetUserByIdAsync(otherParticipantId);
+                        if (otherUser != null)
+                        {
+                            conversation.Participants = new List<Users> { otherUser };
+                        }
+                        else
+                        {
+                            // Create a placeholder user if not found
+                            conversation.Participants = new List<Users> {
+                        new Users { FullName = "Unknown User", Email = "unknown@example.com" }
+                    };
+                        }
+                    }
+                    else
+                    {
+                        // Handle case where there's no other participant
+                        conversation.Participants = new List<Users> {
+                    new Users { FullName = "Unknown User", Email = "unknown@example.com" }
+                };
+                    }
+                }
+
+                return conversations;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUserConversationsAsync: {ex.Message}");
+                return new List<Conversation>();
+            }
         }
-
-        public async Task<List<Users>> SearchUsers(string query, string currentUserId)
+        public async Task<List<Message>> GetConversationMessagesAsync(string conversationId, int limit = 50)
         {
-            // Convert string currentUserId to Guid for comparison
-            var currentUserGuid = Guid.Parse(currentUserId);
-
-            var users = _userManager.Users
-                .AsQueryable()
-                .Where(u => u.Id != currentUserGuid &&
-                           (u.FullName.Contains(query) || u.Email.Contains(query)))
-                .Take(10)
-                .ToList();
-
-            return await Task.FromResult(users);
+            return await _messages.Find(m => m.ConversationId == conversationId)
+                .SortByDescending(m => m.SentAt)
+                .Limit(limit)
+                .ToListAsync();
         }
 
         public async Task<List<Message>> GetMessagesBetweenUsers(string user1Id, string user2Id)
         {
-            return await _messagesCollection
-                .Find(m => (m.SenderId == user1Id && m.ReceiverId == user2Id) ||
-                           (m.SenderId == user2Id && m.ReceiverId == user1Id))
-                .SortBy(m => m.SentAt)
-                .ToListAsync();
+            var conversation = await GetOrCreateConversationAsync(user1Id, user2Id);
+            return await GetConversationMessagesAsync(conversation.Id);
         }
 
-        public async Task SaveMessage(Message message)
+        public async Task<Message> SaveMessageAsync(Message message)
         {
-            await _messagesCollection.InsertOneAsync(message);
+            // Ensure conversation exists
+            var conversation = await GetOrCreateConversationAsync(message.SenderId, message.ReceiverId);
+            message.ConversationId = conversation.Id;
+            message.SentAt = DateTime.UtcNow;
+
+            await _messages.InsertOneAsync(message);
+
+            // Update conversation last message
+            var update = Builders<Conversation>.Update
+                .Set(c => c.LastMessageAt, message.SentAt)
+                .Set(c => c.LastMessagePreview, message.Content.Length > 50
+                    ? message.Content.Substring(0, 50) + "..."
+                    : message.Content)
+                .Inc(c => c.UnreadCount, 1);
+
+            await _conversations.UpdateOneAsync(c => c.Id == conversation.Id, update);
+
+            return message;
         }
 
-        public async Task MarkMessagesAsRead(string userId, string otherUserId)
+        public async Task MarkMessagesAsReadAsync(string conversationId, string userId)
         {
             var filter = Builders<Message>.Filter.And(
+                Builders<Message>.Filter.Eq(m => m.ConversationId, conversationId),
                 Builders<Message>.Filter.Eq(m => m.ReceiverId, userId),
-                Builders<Message>.Filter.Eq(m => m.SenderId, otherUserId),
                 Builders<Message>.Filter.Eq(m => m.IsRead, false)
             );
 
             var update = Builders<Message>.Update.Set(m => m.IsRead, true);
-            await _messagesCollection.UpdateManyAsync(filter, update);
+            await _messages.UpdateManyAsync(filter, update);
+
+            // Reset unread count for this conversation
+            var conversationUpdate = Builders<Conversation>.Update.Set(c => c.UnreadCount, 0);
+            await _conversations.UpdateOneAsync(c => c.Id == conversationId, conversationUpdate);
         }
 
-        public async Task<int> GetUnreadMessageCount(string userId)
+        public async Task<int> GetUnreadMessageCountAsync(string userId)
         {
-            return (int)await _messagesCollection
-                .CountDocumentsAsync(m => m.ReceiverId == userId && !m.IsRead);
+            var filter = Builders<Message>.Filter.And(
+                Builders<Message>.Filter.Eq(m => m.ReceiverId, userId),
+                Builders<Message>.Filter.Eq(m => m.IsRead, false)
+            );
+
+            return (int)await _messages.CountDocumentsAsync(filter);
         }
 
-        // Identity and User collections
-        public IMongoCollection<Users> Users => _db.GetCollection<Users>("Users");
+        // Resource methods
+        public async Task<List<Resource>> GetActiveResourcesAsync()
+        {
+            return await _resources.Find(r => r.IsActive)
+                .SortByDescending(r => r.UploadDate)
+                .ToListAsync();
+        }
 
-        // Chat collections
-        public IMongoCollection<ChatConversation> ChatConversations => _db.GetCollection<ChatConversation>("ChatConversations");
-        public IMongoCollection<ChatMessage> ChatMessages => _db.GetCollection<ChatMessage>("ChatMessages");
+        public async Task<List<Resource>> SearchResourcesAsync(string query, string type, string fileType)
+        {
+            var filter = Builders<Resource>.Filter.Where(r => r.IsActive);
 
-        // Academic collections
-        public IMongoCollection<Resource> Resources => _db.GetCollection<Resource>("Resources");
-        public IMongoCollection<Tutor> Tutors => _db.GetCollection<Tutor>("Tutors");
-        public IMongoCollection<Topic> Topics => _db.GetCollection<Topic>("Topics");
-        public IMongoCollection<Submission> Submissions => _db.GetCollection<Submission>("Submissions");
-        public IMongoCollection<Module> Modules => _db.GetCollection<Module>("Modules");
-        public IMongoCollection<Enrollment> Enrollments => _db.GetCollection<Enrollment>("Enrollments");
-        public IMongoCollection<Review> Reviews => _db.GetCollection<Review>("Reviews");
-        public IMongoCollection<Student> Students => _db.GetCollection<Student>("Students");
+            if (!string.IsNullOrEmpty(query))
+            {
+                filter &= Builders<Resource>.Filter.Or(
+                    Builders<Resource>.Filter.Regex(r => r.Title, new BsonRegularExpression(query, "i")),
+                    Builders<Resource>.Filter.Regex(r => r.Description, new BsonRegularExpression(query, "i")),
+                    Builders<Resource>.Filter.Regex(r => r.Author, new BsonRegularExpression(query, "i"))
+                );
+            }
 
-        // Assessment and Report collections
-        public IMongoCollection<Assessment> Assessments => _db.GetCollection<Assessment>("Assessments");
-        public IMongoCollection<Report> Reports => _db.GetCollection<Report>("Reports");
+            if (!string.IsNullOrEmpty(type))
+            {
+                filter &= Builders<Resource>.Filter.Eq(r => r.Type, type);
+            }
 
-        // Learning Material collection
-        public IMongoCollection<LearningMaterial> LearningMaterials => _db.GetCollection<LearningMaterial>("LearningMaterials");
+            if (!string.IsNullOrEmpty(fileType))
+            {
+                filter &= Builders<Resource>.Filter.Eq(r => r.FileType, fileType);
+            }
+
+            return await _resources.Find(filter)
+                .SortByDescending(r => r.UploadDate)
+                .ToListAsync();
+        }
+
+        public async Task<Resource> GetResourceByIdAsync(string id)
+        {
+            return await _resources.Find(r => r.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateResourceDownloadsAsync(string id)
+        {
+            var update = Builders<Resource>.Update.Inc(r => r.Downloads, 1);
+            await _resources.UpdateOneAsync(r => r.Id == id, update);
+        }
+
+        public async Task SoftDeleteResourceAsync(string id)
+        {
+            var update = Builders<Resource>.Update.Set(r => r.IsActive, false);
+            await _resources.UpdateOneAsync(r => r.Id == id, update);
+        }
+
+        // Property accessors for other parts of your application
+        public IMongoCollection<Users> UsersCollection => _users;
+        public IMongoCollection<Message> MessagesCollection => _messages;
+        public IMongoCollection<Conversation> ConversationsCollection => _conversations;
+        public IMongoCollection<Resource> Resources => _resources;
+
+        // Backward compatibility properties
+        public IMongoCollection<Users> Users => _users; // If you need this
+        public IMongoCollection<Conversation> ChatConversations => _conversations;
+        public IMongoCollection<Message> ChatMessages => _messages;
     }
 }
