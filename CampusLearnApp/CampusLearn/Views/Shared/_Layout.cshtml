@@ -17,8 +17,15 @@
 
     @if (User.Identity.IsAuthenticated)
     {
-        <!-- Sidebar Navigation for Authenticated Users -->
-        <partial name="_PortalNavigation" />
+        <!-- Conditional Sidebar Navigation based on Role -->
+        @if (User.IsInRole("TUTOR") || User.IsInRole("Tutor"))
+        {
+            <partial name="_TutorNavigation" />
+        }
+        else
+        {
+            <partial name="_StudentNavigation" />
+        }
 
         <!-- Main Content Area -->
         <div class="ml-64 min-h-screen bg-gray-50">
@@ -28,6 +35,16 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h1 class="text-xl font-semibold text-gray-900">@ViewData["Title"]</h1>
+                            <p class="text-sm text-gray-600">
+                                @if (User.IsInRole("TUTOR") || User.IsInRole("Tutor"))
+                                {
+                                    <span class="badge bg-purple-100 text-purple-800">Tutor Portal</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-blue-100 text-blue-800">Student Portal</span>
+                                }
+                            </p>
                         </div>
                         <div class="flex items-center space-x-4">
                             <!-- Welcome text and Notifications partial inserted here -->

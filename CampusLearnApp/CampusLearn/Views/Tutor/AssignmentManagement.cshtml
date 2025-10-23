@@ -1,0 +1,894 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Users> UserManager
+
+@{
+    ViewData["Title"] = "Assignment Management";
+    Layout = "_Layout";
+
+    var user = await UserManager.GetUserAsync(User);
+    var fullName = user?.FullName ?? "Tutor";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">Assignment Management</h1>
+                <p class="dashboard-subtitle">Create, distribute, and track student assignments</p>
+            </div>
+            <div class="header-badge">
+                <div class="role-badge">
+                    <i class="fas fa-tasks me-2"></i>
+                    <span id="assignmentStats">Loading assignments...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Left Column - Assignment List & Creator -->
+            <div class="main-column">
+                <!-- Assignment Creator -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Create New Assignment</h2>
+                            <p class="section-description">Set up a new assignment for your students</p>
+                        </div>
+                    </div>
+                    <form id="assignmentForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Assignment Title</label>
+                                <input type="text" class="form-control" id="assignmentTitle" required placeholder="Enter assignment title">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Subject</label>
+                                <select class="form-select" id="assignmentSubject" required>
+                                    <option value="">Select Subject</option>
+                                    <option value="math">Mathematics</option>
+                                    <option value="science">Science</option>
+                                    <option value="english">English</option>
+                                    <option value="programming">Programming</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Due Date</label>
+                                <input type="datetime-local" class="form-control" id="assignmentDueDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Points</label>
+                                <input type="number" class="form-control" id="assignmentPoints" value="100" min="1">
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Instructions</label>
+                                <textarea class="form-control" id="assignmentInstructions" rows="4" placeholder="Provide detailed instructions for the assignment..."></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Attachments</label>
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop files here or click to browse</p>
+                                    <input type="file" id="fileInput" multiple style="display: none;">
+                                </div>
+                                <div class="file-list" id="fileList"></div>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Assign To</label>
+                                <div class="student-selection">
+                                    <div class="selection-options">
+                                        <label class="option-item">
+                                            <input type="radio" name="assignTo" value="all" checked> All Students
+                                        </label>
+                                        <label class="option-item">
+                                            <input type="radio" name="assignTo" value="specific"> Specific Students
+                                        </label>
+                                    </div>
+                                    <div class="specific-students" id="specificStudents" style="display: none;">
+                                        <div class="student-checkboxes" id="studentCheckboxes">
+                                            <!-- Student checkboxes will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" id="saveDraftBtn">Save Draft</button>
+                            <button type="submit" class="btn btn-primary" id="publishAssignmentBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Publish Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Assignment Templates -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Assignment Templates</h2>
+                            <p class="section-description">Quickly create assignments from templates</p>
+                        </div>
+                    </div>
+                    <div class="templates-grid">
+                        <div class="template-card" data-template="quiz">
+                            <div class="template-icon bg-primary">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div class="template-content">
+                                <h4>Quick Quiz</h4>
+                                <p>Multiple choice assessment</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm use-template-btn">Use Template</button>
+                        </div>
+                        <div class="template-card" data-template="homework">
+                            <div class="template-icon bg-success">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="template-content">
+                                <h4>Homework</h4>
+                                <p>Practice problems set</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm use-template-btn">Use Template</button>
+                        </div>
+                        <div class="template-card" data-template="project">
+                            <div class="template-icon bg-info">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="template-content">
+                                <h4>Project</h4>
+                                <p>Long-term assignment</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm use-template-btn">Use Template</button>
+                        </div>
+                        <div class="template-card" data-template="essay">
+                            <div class="template-icon bg-warning">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="template-content">
+                                <h4>Essay</h4>
+                                <p>Written composition</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm use-template-btn">Use Template</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Active Assignments & Statistics -->
+            <div class="sidebar-column">
+                <!-- Active Assignments -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Active Assignments</h2>
+                        <p class="section-description">Currently assigned work</p>
+                    </div>
+                    <div class="assignments-list" id="activeAssignments">
+                        <!-- Active assignments will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Submission Statistics -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Submission Overview</h2>
+                        <p class="section-description">Current assignment status</p>
+                    </div>
+                    <div class="submission-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Assigned</div>
+                            <div class="stat-value">8</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Submitted</div>
+                            <div class="stat-value">24</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Graded</div>
+                            <div class="stat-value">18</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Pending Review</div>
+                            <div class="stat-value">6</div>
+                        </div>
+                    </div>
+                    <div class="progress-chart">
+                        <div class="chart-bar">
+                            <div class="chart-fill submitted" style="width: 75%"></div>
+                            <div class="chart-fill graded" style="width: 56.25%"></div>
+                        </div>
+                        <div class="chart-labels">
+                            <span>Submitted: 75%</span>
+                            <span>Graded: 56%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                        <p class="section-description">Manage assignments efficiently</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="action-item" id="bulkGrade">
+                            <div class="action-icon bg-primary">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Bulk Grade</h4>
+                                <p>Grade multiple submissions</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="importAssignments">
+                            <div class="action-icon bg-success">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Import</h4>
+                                <p>Import assignments from file</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="analytics">
+                            <div class="action-icon bg-info">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Analytics</h4>
+                                <p>View assignment analytics</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                        <a href="#" class="action-item" id="templates">
+                            <div class="action-icon bg-warning">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Templates</h4>
+                                <p>Manage assignment templates</p>
+                            </div>
+                            <i class="fas fa-chevron-right action-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Submissions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Submissions</h2>
+                        <p class="section-description">Latest student work</p>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-success">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Algebra Quiz submitted</h4>
+                                <p>Sarah Johnson</p>
+                                <p class="activity-time">2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Physics lab due soon</h4>
+                                <p>3 students pending</p>
+                                <p class="activity-time">Due tomorrow</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-primary">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Essay graded</h4>
+                                <p>Michael Brown - 85%</p>
+                                <p class="activity-time">1 day ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        // Sample data
+        const assignments = [
+            {
+                id: 1,
+                title: "Quadratic Equations Quiz",
+                subject: "Mathematics",
+                dueDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+                points: 100,
+                submissions: 8,
+                graded: 6,
+                status: "active"
+            },
+            {
+                id: 2,
+                title: "Physics Lab Report",
+                subject: "Science",
+                dueDate: new Date(new Date().setDate(new Date().getDate() + 5)),
+                points: 150,
+                submissions: 4,
+                graded: 2,
+                status: "active"
+            },
+            {
+                id: 3,
+                title: "Essay: Climate Change",
+                subject: "English",
+                dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+                points: 200,
+                submissions: 5,
+                graded: 5,
+                status: "active"
+            }
+        ];
+
+        const students = [
+            { id: 1, name: "Sarah Johnson", subject: "Mathematics" },
+            { id: 2, name: "Michael Brown", subject: "Science" },
+            { id: 3, name: "David Lee", subject: "Programming" },
+            { id: 4, name: "Emily Chen", subject: "Mathematics" },
+            { id: 5, name: "Alex Rodriguez", subject: "English" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAssignmentManagement();
+        });
+
+        function initializeAssignmentManagement() {
+            loadActiveAssignments();
+            setupEventListeners();
+            populateStudentCheckboxes();
+            updateAssignmentStats();
+        }
+
+        function loadActiveAssignments() {
+            const container = document.getElementById('activeAssignments');
+            container.innerHTML = '';
+
+            assignments.forEach(assignment => {
+                const assignmentElement = document.createElement('div');
+                assignmentElement.className = 'assignment-item';
+                assignmentElement.innerHTML = `
+                    <div class="assignment-header">
+                        <h4>${assignment.title}</h4>
+                        <span class="assignment-points">${assignment.points} pts</span>
+                    </div>
+                    <div class="assignment-details">
+                        <span class="assignment-subject">${assignment.subject}</span>
+                        <span class="assignment-due">Due: ${formatDueDate(assignment.dueDate)}</span>
+                    </div>
+                    <div class="assignment-progress">
+                        <div class="progress-info">
+                            <span>Submissions: ${assignment.submissions}</span>
+                            <span>Graded: ${assignment.graded}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill graded" style="width: ${(assignment.graded / assignment.submissions) * 100 || 0}%"></div>
+                            <div class="progress-fill submitted" style="width: ${(assignment.submissions / 12) * 100 || 0}%"></div>
+                        </div>
+                    </div>
+                    <div class="assignment-actions">
+                        <button class="btn btn-outline btn-sm" onclick="viewSubmissions(${assignment.id})">
+                            <i class="fas fa-eye me-1"></i>View
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="gradeAssignment(${assignment.id})">
+                            <i class="fas fa-check me-1"></i>Grade
+                        </button>
+                    </div>
+                `;
+                container.appendChild(assignmentElement);
+            });
+        }
+
+        function setupEventListeners() {
+            // Form submission
+            document.getElementById('assignmentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                createNewAssignment();
+            });
+
+            // Save draft
+            document.getElementById('saveDraftBtn').addEventListener('click', function() {
+                saveAssignmentAsDraft();
+            });
+
+            // File upload
+            document.getElementById('fileUploadArea').addEventListener('click', function() {
+                document.getElementById('fileInput').click();
+            });
+
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+            // Student selection
+            document.querySelectorAll('input[name="assignTo"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('specificStudents').style.display =
+                        this.value === 'specific' ? 'block' : 'none';
+                });
+            });
+
+            // Template buttons
+            document.querySelectorAll('.use-template-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const template = this.closest('.template-card').dataset.template;
+                    useTemplate(template);
+                });
+            });
+
+            // Quick actions
+            document.getElementById('bulkGrade').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening bulk grading tool...', 'info');
+            });
+
+            document.getElementById('importAssignments').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening import dialog...', 'info');
+            });
+
+            document.getElementById('analytics').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Loading assignment analytics...', 'info');
+            });
+
+            document.getElementById('templates').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('Opening template manager...', 'info');
+            });
+        }
+
+        function populateStudentCheckboxes() {
+            const container = document.getElementById('studentCheckboxes');
+            container.innerHTML = '';
+
+            students.forEach(student => {
+                const checkbox = document.createElement('label');
+                checkbox.className = 'student-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" value="${student.id}" data-name="${student.name}">
+                    <span>${student.name} (${student.subject})</span>
+                `;
+                container.appendChild(checkbox);
+            });
+        }
+
+        function createNewAssignment() {
+            const formData = {
+                title: document.getElementById('assignmentTitle').value,
+                subject: document.getElementById('assignmentSubject').value,
+                dueDate: document.getElementById('assignmentDueDate').value,
+                points: document.getElementById('assignmentPoints').value,
+                instructions: document.getElementById('assignmentInstructions').value,
+                assignTo: document.querySelector('input[name="assignTo"]:checked').value,
+                specificStudents: getSelectedStudents()
+            };
+
+            // Validate form
+            if (!formData.title || !formData.subject || !formData.dueDate) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Create new assignment
+            const newAssignment = {
+                id: assignments.length + 1,
+                title: formData.title,
+                subject: formData.subject.charAt(0).toUpperCase() + formData.subject.slice(1),
+                dueDate: new Date(formData.dueDate),
+                points: parseInt(formData.points),
+                submissions: 0,
+                graded: 0,
+                status: "active"
+            };
+
+            assignments.unshift(newAssignment);
+            loadActiveAssignments();
+            updateAssignmentStats();
+
+            showNotification(`Assignment "${formData.title}" published successfully!`, 'success');
+            document.getElementById('assignmentForm').reset();
+            document.getElementById('fileList').innerHTML = '';
+        }
+
+        function saveAssignmentAsDraft() {
+            showNotification('Assignment saved as draft', 'info');
+        }
+
+        function handleFileUpload(e) {
+            const files = e.target.files;
+            const fileList = document.getElementById('fileList');
+
+            Array.from(files).forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <i class="fas fa-file"></i>
+                    <span>${file.name}</span>
+                    <button type="button" class="btn-remove-file">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function getSelectedStudents() {
+            const selected = [];
+            document.querySelectorAll('#studentCheckboxes input:checked').forEach(checkbox => {
+                selected.push({
+                    id: checkbox.value,
+                    name: checkbox.dataset.name
+                });
+            });
+            return selected;
+        }
+
+        function useTemplate(templateType) {
+            const templates = {
+                quiz: {
+                    title: "Quick Quiz",
+                    instructions: "Complete the following multiple choice questions.",
+                    points: 50
+                },
+                homework: {
+                    title: "Practice Problems",
+                    instructions: "Solve the following practice problems showing all work.",
+                    points: 100
+                },
+                project: {
+                    title: "Research Project",
+                    instructions: "Complete the research project following the provided guidelines.",
+                    points: 200
+                },
+                essay: {
+                    title: "Essay Assignment",
+                    instructions: "Write a well-structured essay on the given topic.",
+                    points: 150
+                }
+            };
+
+            const template = templates[templateType];
+            if (template) {
+                document.getElementById('assignmentTitle').value = template.title;
+                document.getElementById('assignmentInstructions').value = template.instructions;
+                document.getElementById('assignmentPoints').value = template.points;
+                showNotification(`Loaded ${templateType} template`, 'info');
+            }
+        }
+
+        function viewSubmissions(assignmentId) {
+            showNotification(`Opening submissions for assignment ${assignmentId}`, 'info');
+        }
+
+        function gradeAssignment(assignmentId) {
+            showNotification(`Starting to grade assignment ${assignmentId}`, 'info');
+        }
+
+        function formatDueDate(date) {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function updateAssignmentStats() {
+            const total = assignments.length;
+            const active = assignments.filter(a => a.status === 'active').length;
+            document.getElementById('assignmentStats').textContent =
+                `${active} Active • ${total} Total`;
+        }
+
+        // Add CSS for assignment management
+        const style = document.createElement('style');
+        style.textContent = `
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .form-group.full-width {
+                grid-column: 1 / -1;
+            }
+
+            .form-label {
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                color: var(--text-secondary);
+            }
+
+            .form-control, .form-select {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 0.75rem;
+                font-size: 0.875rem;
+                transition: border-color 0.2s ease;
+            }
+
+            .form-control:focus, .form-select:focus {
+                outline: none;
+                border-color: var(--primary);
+            }
+
+            .file-upload-area {
+                border: 2px dashed var(--border);
+                border-radius: var(--radius);
+                padding: 2rem;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.2s ease;
+            }
+
+            .file-upload-area:hover {
+                border-color: var(--primary);
+            }
+
+            .file-upload-area i {
+                font-size: 2rem;
+                color: var(--text-muted);
+                margin-bottom: 0.5rem;
+            }
+
+            .file-list {
+                margin-top: 1rem;
+            }
+
+            .file-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem;
+                background: var(--background);
+                border-radius: var(--radius);
+                margin-bottom: 0.5rem;
+            }
+
+            .btn-remove-file {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                margin-left: auto;
+            }
+
+            .student-selection {
+                margin-top: 0.5rem;
+            }
+
+            .selection-options {
+                display: flex;
+                gap: 2rem;
+                margin-bottom: 1rem;
+            }
+
+            .option-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+            }
+
+            .student-checkboxes {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+
+            .student-checkbox {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+            }
+
+            .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                border-top: 1px solid var(--border);
+                padding-top: 1.5rem;
+            }
+
+            .templates-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .template-card {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                transition: all 0.2s ease;
+            }
+
+            .template-card:hover {
+                border-color: var(--primary);
+            }
+
+            .template-icon {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.25rem;
+                flex-shrink: 0;
+            }
+
+            .template-content {
+                flex: 1;
+            }
+
+            .template-content h4 {
+                margin: 0 0 0.25rem 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .template-content p {
+                margin: 0;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .assignments-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .assignment-item {
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                background: var(--surface);
+            }
+
+            .assignment-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 0.5rem;
+            }
+
+            .assignment-header h4 {
+                margin: 0;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .assignment-points {
+                background: var(--primary);
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius);
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .assignment-details {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1rem;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .assignment-subject {
+                background: var(--background);
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius);
+            }
+
+            .assignment-progress {
+                margin-bottom: 1rem;
+            }
+
+            .progress-info {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.75rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .assignment-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .submission-stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .stat-item {
+                text-align: center;
+                padding: 1rem;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                margin-bottom: 0.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+            }
+
+            .progress-chart {
+                margin-top: 1rem;
+            }
+
+            .chart-bar {
+                height: 8px;
+                background: var(--background);
+                border-radius: 4px;
+                overflow: hidden;
+                position: relative;
+                margin-bottom: 0.5rem;
+            }
+
+            .chart-fill {
+                height: 100%;
+                position: absolute;
+                left: 0;
+            }
+
+            .chart-fill.submitted {
+                background: var(--primary);
+                opacity: 0.6;
+            }
+
+            .chart-fill.graded {
+                background: var(--success);
+            }
+
+            .chart-labels {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}
