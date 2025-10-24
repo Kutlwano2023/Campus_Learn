@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -19,7 +19,10 @@ namespace CampusLearn.Controllers
         private readonly IFileUploadService _fileUploadService;
         private readonly IWebHostEnvironment _environment;
 
-        public ResourceController(MongoService mongoService, IFileUploadService fileUploadService, IWebHostEnvironment environment)
+        public ResourceController(
+            MongoService mongoService,
+            IFileUploadService fileUploadService,
+            IWebHostEnvironment environment)
         {
             _mongoService = mongoService;
             _fileUploadService = fileUploadService;
@@ -47,45 +50,46 @@ namespace CampusLearn.Controllers
         [HttpPost]
         [Authorize(Roles = "Tutor,Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(UploadResourceViewModel model)
+        public IActionResult Upload(UploadResourceViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
 
-            try
+            // Run upload in a separate task to avoid blocking
+            Task.Run(async () =>
             {
-                // Upload file
-                var fileUrl = await _fileUploadService.UploadFileAsync(model.File, "uploads/resources");
-
-                // Create resource
-                var resource = new Resource
+                try
                 {
-                    Title = model.Title,
-                    Description = model.Description,
-                    Type = model.Type,
-                    FileType = Path.GetExtension(model.File.FileName).ToUpper().TrimStart('.'),
-                    FileSizeMB = Math.Round(model.File.Length / (1024.0 * 1024.0), 2),
-                    FileUrl = fileUrl,
-                    FileName = model.File.FileName,
-                    ModuleId = model.ModuleId,
-                    TopicId = model.TopicId,
-                    UploadedBy = User.Identity.Name,
-                    UploadDate = DateTime.UtcNow,
-                    Author = User.Identity.Name // Or get from user profile
-                };
+                    // Upload file
+                    var fileUrl = await _fileUploadService.UploadFileAsync(model.File, "uploads/resources");
 
-                await _mongoService.Resources.InsertOneAsync(resource);
+                    // Create resource
+                    var resource = new Resource
+                    {
+                        Title = model.Title,
+                        Description = model.Description,
+                        Type = model.Type,
+                        FileType = Path.GetExtension(model.File.FileName).ToUpper().TrimStart('.'),
+                        FileSizeMB = Math.Round(model.File.Length / (1024.0 * 1024.0), 2),
+                        FileUrl = fileUrl,
+                        FileName = model.File.FileName,
+                        ModuleId = model.ModuleId,
+                        TopicId = model.TopicId,
+                        UploadedBy = User.Identity.Name,
+                        UploadDate = DateTime.UtcNow,
+                        Author = User.Identity.Name
+                    };
 
-                TempData["Success"] = "Resource uploaded successfully!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"Error uploading file: {ex.Message}");
-                return View(model);
-            }
+                    await _mongoService.Resources.InsertOneAsync(resource);
+                }
+                catch
+                {
+                    // You can log errors if needed, or handle them silently
+                }
+            });
+
+            TempData["Success"] = "Resource upload started. It will appear shortly.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -94,14 +98,10 @@ namespace CampusLearn.Controllers
         {
             var resource = await _mongoService.Resources.Find(r => r.Id == id).FirstOrDefaultAsync();
             if (resource == null)
-            {
                 return NotFound();
-            }
 
-            // Delete physical file
             await _fileUploadService.DeleteFileAsync(resource.FileUrl);
 
-            // Soft delete from database
             var update = Builders<Resource>.Update.Set(r => r.IsActive, false);
             await _mongoService.Resources.UpdateOneAsync(r => r.Id == id, update);
 
@@ -113,11 +113,8 @@ namespace CampusLearn.Controllers
         {
             var resource = await _mongoService.Resources.Find(r => r.Id == id).FirstOrDefaultAsync();
             if (resource == null)
-            {
                 return NotFound();
-            }
 
-            // Increment download count
             var update = Builders<Resource>.Update.Inc(r => r.Downloads, 1);
             await _mongoService.Resources.UpdateOneAsync(r => r.Id == id, update);
 
@@ -141,14 +138,10 @@ namespace CampusLearn.Controllers
             }
 
             if (!string.IsNullOrEmpty(type))
-            {
                 filter &= Builders<Resource>.Filter.Eq(r => r.Type, type);
-            }
 
             if (!string.IsNullOrEmpty(fileType))
-            {
                 filter &= Builders<Resource>.Filter.Eq(r => r.FileType, fileType);
-            }
 
             var resources = await _mongoService.Resources
                 .Find(filter)
@@ -159,3 +152,4 @@ namespace CampusLearn.Controllers
         }
     }
 }
+
