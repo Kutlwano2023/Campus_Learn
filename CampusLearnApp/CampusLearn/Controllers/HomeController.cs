@@ -18,16 +18,8 @@ namespace CampusLearn.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                // For authenticated users, show the dashboard-like home page
-                var user = await _userManager.GetUserAsync(User);
-                var roles = await _userManager.GetRolesAsync(user);
-                var userRole = roles.FirstOrDefault() ?? user?.Role;
-
-                ViewBag.UserName = user?.FullName ?? User.Identity.Name;
-                ViewBag.Role = userRole;
-
-                // Use a different layout or view for authenticated users
-                return View("Dashboard");
+                // For authenticated users, redirect to the Portal dashboard action
+                return RedirectToAction("Dashboard", "Portal");
             }
             else
             {
